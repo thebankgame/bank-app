@@ -4,6 +4,7 @@ import DashboardCard from '../components/DashboardCard';
 import AccountOverview from '../components/AccountOverview';
 import TransactionHistory from '../components/TransactionHistory';
 import CompoundInterestChart from '../components/CompoundInterestChart';
+import InterestRateSimulator from '../components/InterestRateSimulator';
 import { BankAccount } from '@/types/bank';
 import { Session } from 'next-auth';
 
@@ -53,19 +54,33 @@ export default function DashboardContent({ session, initialData }: DashboardCont
               />
             </DashboardCard>
 
-            {/* Compound Interest Chart */}
-            <DashboardCard title="Growth Projection" className="mb-6">
+            {/* Current Growth Projection */}
+            <DashboardCard title="Current Growth Projection" className="mb-6">
               <div className="p-4">
                 <p className="text-sm text-gray-600 mb-4">
                   This chart shows how your current balance of {new Intl.NumberFormat('en-US', {
                     style: 'currency',
                     currency: 'USD'
-                  }).format(initialData.balance)} would grow over the next 5 years at {initialData.interestRate}% annual interest rate, assuming no additional deposits or withdrawals.
+                  }).format(initialData.balance)} would grow over the next 5 years at your current interest rate of {initialData.interestRate}%.
                 </p>
                 <CompoundInterestChart
                   initialBalance={initialData.balance}
                   interestRate={initialData.interestRate}
                   years={5}
+                />
+              </div>
+            </DashboardCard>
+
+            {/* Interest Rate Simulator */}
+            <DashboardCard title="Interest Rate Simulator" className="mb-6">
+              <div className="p-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  Drag the slider to simulate how different interest rates would affect your money's growth over time. 
+                  The green line marks your current interest rate of {initialData.interestRate}%.
+                </p>
+                <InterestRateSimulator
+                  initialBalance={initialData.balance}
+                  currentInterestRate={initialData.interestRate}
                 />
               </div>
             </DashboardCard>
