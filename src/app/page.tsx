@@ -1,152 +1,44 @@
-'use client'
+// src/app/page.tsx
 
-import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]/route';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
-  const [balance, setBalance] = useState(0);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [withdrawalAmount, setWithdrawalAmount] = useState('');
-  const [error, setError] = useState('');
-  const userId = 'user1'; // Replace with actual user ID after authentication
+export default async function Home() {
+  const session = await getServerSession(authOptions);
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        const response = await fetch(`/api/bank?userId=${userId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setBalance(data.balance);
-        } else {
-          setError('Failed to load balance.');
-        }
-      } catch (error) {
-        setError('An error occurred.');
-      }
-    };
-
-    fetchBalance();
-  }, [userId]);
-
-  const handleDeposit = async () => {
-    setError('');
-    const amount = parseFloat(depositAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setError('Please enter a valid deposit amount.');
-      return;
-    }
-    try {
-      const response = await fetch('/api/bank', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId, type: 'deposit', amount }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setBalance(data.balance);
-        setDepositAmount('');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Deposit failed.');
-      }
-    } catch (error) {
-      setError('An error occurred.');
-    }
-  };
-
-  const handleWithdrawal = async () => {
-    setError('');
-    const amount = parseFloat(withdrawalAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setError('Please enter a valid withdrawal amount.');
-      return;
-    }
-    try {
-      const response = await fetch('/api/bank', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId, type: 'withdraw', amount }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setBalance(data.balance);
-        setWithdrawalAmount('');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Withdrawal failed.');
-      }
-    } catch (error) {
-      setError('An error occurred.');
-    }
-  };
+  if (session) {
+    redirect('/dashboard'); // Redirect to dashboard if user is already signed in
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 font-sans p-6 sm:p-10">
-      <main className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">My Simple Bank</h1>
-        <p className="text-xl text-gray-700 mb-8 text-center">
-          Current Balance: <span className="font-mono">${balance.toFixed(2)}</span>
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-100">
+      <div className="bg-white p-12 rounded-lg shadow-lg max-w-3xl">
+        <h1 className="text-5xl font-bold text-center text-blue-700 mb-8">
+          Welcome to The Bank Game
+        </h1>
+        <p className="text-lg text-gray-700 mb-6">
+          Unlock the secrets of saving and watch your wealth grow! The Bank Game is designed to help you understand the power of saving, especially the magic of compound interest.
         </p>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-            <strong className="font-bold">Error: </strong>
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
-
-        <div className="mb-6">
-          <label htmlFor="deposit" className="block text-gray-700 text-sm font-bold mb-2">
-            Deposit:
-          </label>
-          <div className="flex">
-            <input
-              type="number"
-              id="deposit"
-              value={depositAmount}
-              onChange={(e) => setDepositAmount(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Amount"
-            />
-            <button
-              onClick={handleDeposit}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2 focus:outline-none focus:shadow-outline"
-            >
-              Deposit
-            </button>
-          </div>
+        <p className="text-lg text-gray-700 mb-6">
+          In this interactive application, you'll get to run your own virtual bank.  Manage accounts, track savings, and see first-hand how consistent saving habits lead to significant growth over time.  
+        </p>
+        <div className="text-lg text-gray-700 mb-6">
+          <p>Learn the fundamentals of:</p>
+          <ul className="list-disc list-inside mt-2">
+            <li>Saving strategies</li>
+            <li>Compound interest</li>
+            <li>Managing a Bank</li>
+            <li>And more!</li>
+          </ul>
         </div>
-
-        <div>
-          <label htmlFor="withdrawal" className="block text-gray-700 text-sm font-bold mb-2">
-            Withdraw:
-          </label>
-          <div className="flex">
-            <input
-              type="number"
-              id="withdrawal"
-              value={withdrawalAmount}
-              onChange={(e) => setWithdrawalAmount(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Amount"
-            />
-            <button
-              onClick={handleWithdrawal}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2 focus:outline-none focus:shadow-outline"
-            >
-              Withdraw
-            </button>
-          </div>
+        <div className="flex justify-center mt-8">
+          <Link href="/auth/signin" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded">
+            Sign In
+          </Link>
         </div>
-      </main>
-
-      <footer className="mt-10 text-center text-gray-500">
-        <p>Built using Next.js</p>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }

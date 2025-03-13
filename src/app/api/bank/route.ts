@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import CognitoProvider from 'next-auth/providers/cognito';
 
 // In a real app, you'd use a database here.
 // For this example, we'll use an in-memory object.
@@ -6,47 +8,56 @@ import { NextResponse } from 'next/server';
 let bankData: { [userId: string]: number } = {};
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
+    const session = await getServerSession()
+    if(!session){
+        return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+    }
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
 
-  if (!userId) {
-    return NextResponse.json({ error: 'userId is required' }, { status: 400 });
-  }
+    if (!userId) {
+        return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    }
 
-  const balance = bankData[userId] || 0;
-  return NextResponse.json({ balance });
+    const balance = bankData[userId] || 0;
+    return NextResponse.json({ balance });
 }
 
 export async function POST(request: Request) {
-  const { userId, type, amount } = await request.json();
-
-  if (!userId || !type || !amount) {
-    return NextResponse.json(
-      { error: 'userId, type, and amount are required' },
-      { status: 400 }
-    );
-  }
-
-  if (amount <= 0 || isNaN(amount)) {
-     return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 });
-  }
-
-  if (!['deposit', 'withdraw'].includes(type)) {
-    return NextResponse.json({ error: 'Invalid transaction type' }, { status: 400 });
-  }
-
-  let currentBalance = bankData[userId] || 0;
-
-  if (type === 'deposit') {
-    currentBalance += amount;
-  } else if (type === 'withdraw') {
-    if (currentBalance < amount) {
-      return NextResponse.json({ error: 'Insufficient funds' }, { status: 400 });
+    const session = await getServerSession();
+    if(!session){
+        return NextResponse.json({error: 'Unauthorized'}, {status: 401})
     }
-    currentBalance -= amount;
-  }
 
-  bankData[userId] = currentBalance;
+    const { userId, type, amount } = await request.json();
 
-  return NextResponse.json({ message: 'Transaction successful', balance: currentBalance });
+    if (!userId || !type || !amount) {
+        return NextResponse.json(
+        { error: 'userId, type, and amount are required' },
+        { status: 400 }
+        );
+    }
+
+    if (amount <= 0 || isNaN(amount)) {
+        return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 });
+    }
+
+    if (!['deposit', 'withdraw'].includes(type)) {
+        return NextResponse.json({ error: 'Invalid transaction type' }, { status: 400 });
+    }
+
+    let currentBalance = bankData[userId] || 0;
+
+    if (type === 'deposit') {
+        currentBalance += amount;
+    } else if (type === 'withdraw') {
+        if (currentBalance < amount) {
+        return NextResponse.json({ error: 'Insufficient funds' }, { status: 400 });
+        }
+        currentBalance -= amount;
+    }
+
+    bankData[userId] = currentBalance;
+
+    return NextResponse.json({ message: 'Transaction successful', balance: currentBalance });
 }
