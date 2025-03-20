@@ -5,8 +5,10 @@ import AccountOverview from "../components/AccountOverview";
 import TransactionHistory from "../components/TransactionHistory";
 import CompoundInterestChart from "../components/CompoundInterestChart";
 import InterestRateSimulator from "../components/InterestRateSimulator";
-import { BankAccount } from "@/types/bank";
+import NewTransactionForm from "../components/NewTransactionForm";
+import { BankAccount, Transaction } from "@/types/bank";
 import { Session } from "next-auth";
+import { useState } from "react";
 
 interface DashboardContentProps {
   session: Session;
@@ -17,6 +19,34 @@ export default function DashboardContent({
   session,
   initialData,
 }: DashboardContentProps) {
+  const [transactions, setTransactions] = useState<Transaction[]>(
+    initialData.transactions
+  );
+  const [balance, setBalance] = useState(initialData.balance);
+
+  const handleNewTransaction = (transaction: {
+    description: string;
+    amount: number;
+    type: "deposit" | "withdrawal";
+  }) => {
+    const newTransaction: Transaction = {
+      id: Date.now().toString(),
+      date: new Date().toISOString().split("T")[0],
+      description: transaction.description,
+      amount: transaction.amount,
+      type: transaction.type,
+    };
+
+    // Update balance based on transaction type
+    const newBalance =
+      transaction.type === "deposit"
+        ? balance + transaction.amount
+        : balance - transaction.amount;
+
+    setTransactions([newTransaction, ...transactions]);
+    setBalance(newBalance);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow-sm">
@@ -57,10 +87,15 @@ export default function DashboardContent({
               className="mb-6"
             >
               <AccountOverview
-                balance={initialData.balance}
+                balance={balance}
                 interestRate={initialData.interestRate}
-                lastTransaction={initialData.lastTransaction}
+                lastTransaction={transactions[0]}
               />
+            </DashboardCard>
+
+            {/* New Transaction Form */}
+            <DashboardCard title="New Transaction" className="mb-6">
+              <NewTransactionForm onSubmit={handleNewTransaction} />
             </DashboardCard>
 
             {/* Growth Projection and Interest Rate Simulator Section */}
@@ -73,12 +108,12 @@ export default function DashboardContent({
                     {new Intl.NumberFormat("en-US", {
                       style: "currency",
                       currency: "USD",
-                    }).format(initialData.balance)}{" "}
+                    }).format(balance)}{" "}
                     would grow over the next 5 years at your current interest
                     rate of {initialData.interestRate}%.
                   </p>
                   <CompoundInterestChart
-                    initialBalance={initialData.balance}
+                    initialBalance={balance}
                     interestRate={initialData.interestRate}
                     years={5}
                   />
@@ -95,7 +130,7 @@ export default function DashboardContent({
                     {initialData.interestRate}%.
                   </p>
                   <InterestRateSimulator
-                    initialBalance={initialData.balance}
+                    initialBalance={balance}
                     currentInterestRate={initialData.interestRate}
                   />
                 </div>
@@ -104,7 +139,7 @@ export default function DashboardContent({
 
             {/* Transaction History */}
             <DashboardCard title="Recent Transactions">
-              <TransactionHistory transactions={initialData.transactions} />
+              <TransactionHistory transactions={transactions} />
             </DashboardCard>
           </div>
         </div>
