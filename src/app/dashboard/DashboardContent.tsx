@@ -1,28 +1,41 @@
 "use client";
 
+import { useState } from "react";
 import DashboardCard from "../components/DashboardCard";
 import AccountOverview from "../components/AccountOverview";
 import TransactionHistory from "../components/TransactionHistory";
 import CompoundInterestChart from "../components/CompoundInterestChart";
 import InterestRateSimulator from "../components/InterestRateSimulator";
 import NewTransactionForm from "../components/NewTransactionForm";
-import { BankAccount, Transaction } from "@/types/bank";
+import AccountSelector from "../components/AccountSelector";
+import { BankAccount, Transaction, UserBankData } from "@/types/bank";
 import { Session } from "next-auth";
-import { useState } from "react";
 
 interface DashboardContentProps {
   session: Session;
-  initialData: BankAccount;
+  initialData: UserBankData;
+}
+
+function generateAccountNumber(): string {
+  return Array.from({ length: 4 }, () =>
+    Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, "0")
+  ).join("-");
 }
 
 export default function DashboardContent({
   session,
   initialData,
 }: DashboardContentProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>(
-    initialData.transactions
+  const [accounts, setAccounts] = useState<BankAccount[]>(initialData.accounts);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(
+    initialData.selectedAccountId
   );
-  const [balance, setBalance] = useState(initialData.balance);
+
+  const selectedAccount = accounts.find(
+    (account) => account.id === selectedAccountId
+  )!;
 
   const handleNewTransaction = (transaction: {
     description: string;
@@ -37,14 +50,37 @@ export default function DashboardContent({
       type: transaction.type,
     };
 
-    // Update balance based on transaction type
-    const newBalance =
-      transaction.type === "deposit"
-        ? balance + transaction.amount
-        : balance - transaction.amount;
+    setAccounts((currentAccounts) =>
+      currentAccounts.map((account) => {
+        if (account.id === selectedAccountId) {
+          const newBalance =
+            transaction.type === "deposit"
+              ? account.balance + transaction.amount
+              : account.balance - transaction.amount;
 
-    setTransactions([newTransaction, ...transactions]);
-    setBalance(newBalance);
+          return {
+            ...account,
+            balance: newBalance,
+            transactions: [newTransaction, ...account.transactions],
+          };
+        }
+        return account;
+      })
+    );
+  };
+
+  const handleCreateAccount = (name: string) => {
+    const newAccount: BankAccount = {
+      id: Date.now().toString(),
+      name,
+      accountNumber: generateAccountNumber(),
+      balance: 0,
+      interestRate: 2.5, // Default interest rate
+      transactions: [],
+    };
+
+    setAccounts((current) => [...current, newAccount]);
+    setSelectedAccountId(newAccount.id);
   };
 
   return (
@@ -73,23 +109,32 @@ export default function DashboardContent({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-semibold text-gray-900">
-              Welcome, {session.user?.name}
+              Welcome, {session.user?.name || session.user?.email}
             </h1>
             <div className="text-sm text-gray-500">
               Last login: {new Date().toLocaleDateString()}
             </div>
           </div>
 
+          <div className="mb-6">
+            <AccountSelector
+              accounts={accounts}
+              selectedAccountId={selectedAccountId}
+              onAccountSelect={setSelectedAccountId}
+              onCreateAccount={handleCreateAccount}
+            />
+          </div>
+
           <div className="space-y-6">
             {/* Account Overview Section */}
             <DashboardCard
-              title={`Account Overview (${initialData.accountNumber})`}
+              title={`${selectedAccount.name} (${selectedAccount.accountNumber})`}
               className="mb-6"
             >
               <AccountOverview
-                balance={balance}
-                interestRate={initialData.interestRate}
-                lastTransaction={transactions[0]}
+                balance={selectedAccount.balance}
+                interestRate={selectedAccount.interestRate}
+                lastTransaction={selectedAccount.transactions[0]}
               />
             </DashboardCard>
 
@@ -108,13 +153,13 @@ export default function DashboardContent({
                     {new Intl.NumberFormat("en-US", {
                       style: "currency",
                       currency: "USD",
-                    }).format(balance)}{" "}
+                    }).format(selectedAccount.balance)}{" "}
                     would grow over the next 5 years at your current interest
-                    rate of {initialData.interestRate}%.
+                    rate of {selectedAccount.interestRate}%.
                   </p>
                   <CompoundInterestChart
-                    initialBalance={balance}
-                    interestRate={initialData.interestRate}
+                    initialBalance={selectedAccount.balance}
+                    interestRate={selectedAccount.interestRate}
                     years={5}
                   />
                 </div>
@@ -127,11 +172,11 @@ export default function DashboardContent({
                     Drag the slider to simulate how different interest rates
                     would affect your money's growth over time. The green line
                     marks your current interest rate of{" "}
-                    {initialData.interestRate}%.
+                    {selectedAccount.interestRate}%.
                   </p>
                   <InterestRateSimulator
-                    initialBalance={balance}
-                    currentInterestRate={initialData.interestRate}
+                    initialBalance={selectedAccount.balance}
+                    currentInterestRate={selectedAccount.interestRate}
                   />
                 </div>
               </DashboardCard>
@@ -139,7 +184,7 @@ export default function DashboardContent({
 
             {/* Transaction History */}
             <DashboardCard title="Recent Transactions">
-              <TransactionHistory transactions={transactions} />
+              <TransactionHistory transactions={selectedAccount.transactions} />
             </DashboardCard>
           </div>
         </div>
