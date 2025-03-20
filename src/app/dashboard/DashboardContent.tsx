@@ -63,40 +63,44 @@ export default function DashboardContent({
               />
             </DashboardCard>
 
-            {/* Current Growth Projection */}
-            <DashboardCard title="Current Growth Projection" className="mb-6">
-              <div className="p-4">
-                <p className="text-sm text-gray-600 mb-4">
-                  This chart shows how your current balance of{" "}
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                  }).format(initialData.balance)}{" "}
-                  would grow over the next 5 years at your current interest rate
-                  of {initialData.interestRate}%.
-                </p>
-                <CompoundInterestChart
-                  initialBalance={initialData.balance}
-                  interestRate={initialData.interestRate}
-                  years={5}
-                />
-              </div>
-            </DashboardCard>
+            {/* Growth Projection and Interest Rate Simulator Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Current Growth Projection */}
+              <DashboardCard title="Current Growth Projection">
+                <div className="p-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    This chart shows how your current balance of{" "}
+                    {new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                    }).format(initialData.balance)}{" "}
+                    would grow over the next 5 years at your current interest
+                    rate of {initialData.interestRate}%.
+                  </p>
+                  <CompoundInterestChart
+                    initialBalance={initialData.balance}
+                    interestRate={initialData.interestRate}
+                    years={5}
+                  />
+                </div>
+              </DashboardCard>
 
-            {/* Interest Rate Simulator */}
-            <DashboardCard title="Interest Rate Simulator" className="mb-6">
-              <div className="p-4">
-                <p className="text-sm text-gray-600 mb-4">
-                  Drag the slider to simulate how different interest rates would
-                  affect your money's growth over time. The green line marks
-                  your current interest rate of {initialData.interestRate}%.
-                </p>
-                <InterestRateSimulator
-                  initialBalance={initialData.balance}
-                  currentInterestRate={initialData.interestRate}
-                />
-              </div>
-            </DashboardCard>
+              {/* Interest Rate Simulator */}
+              <DashboardCard title="Interest Rate Simulator">
+                <div className="p-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Drag the slider to simulate how different interest rates
+                    would affect your money's growth over time. The green line
+                    marks your current interest rate of{" "}
+                    {initialData.interestRate}%.
+                  </p>
+                  <InterestRateSimulator
+                    initialBalance={initialData.balance}
+                    currentInterestRate={initialData.interestRate}
+                  />
+                </div>
+              </DashboardCard>
+            </div>
 
             {/* Transaction History */}
             <DashboardCard title="Recent Transactions">

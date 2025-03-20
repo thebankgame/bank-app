@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import CompoundInterestChart from './CompoundInterestChart';
+import { useState, useCallback } from "react";
+import CompoundInterestChart from "./CompoundInterestChart";
 
 interface InterestRateSimulatorProps {
   initialBalance: number;
@@ -15,33 +15,46 @@ export default function InterestRateSimulator({
   const [simulatedRate, setSimulatedRate] = useState(currentInterestRate);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isDragging) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const width = rect.width;
-    
-    // Calculate percentage (0-100)
-    let percentage = (x / width) * 100;
-    percentage = Math.max(0, Math.min(100, percentage));
-    
-    setSimulatedRate(Number(percentage.toFixed(1)));
-  }, [isDragging]);
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const width = rect.width;
+
+      // Calculate percentage (0-100)
+      let percentage = (x / width) * 100;
+      percentage = Math.max(0, Math.min(100, percentage));
+
+      setSimulatedRate(Number(percentage.toFixed(1)));
+    },
+    [isDragging]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-    document.body.style.cursor = 'default';
+    document.body.style.cursor = "default";
   }, []);
 
   const handleMouseDown = useCallback(() => {
     setIsDragging(true);
-    document.body.style.cursor = 'grabbing';
+    document.body.style.cursor = "grabbing";
   }, []);
 
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = parseFloat(e.target.value);
+      if (!isNaN(value)) {
+        setSimulatedRate(Math.max(0, Math.min(100, value)));
+      }
+    },
+    []
+  );
+
   // Add global mouse up listener
-  if (typeof window !== 'undefined') {
-    window.addEventListener('mouseup', handleMouseUp);
+  if (typeof window !== "undefined") {
+    window.addEventListener("mouseup", handleMouseUp);
   }
 
   return (
@@ -58,7 +71,7 @@ export default function InterestRateSimulator({
               className="h-full bg-blue-500 rounded-lg"
               style={{ width: `${simulatedRate}%` }}
             />
-            
+
             {/* Thumb */}
             <div
               className="absolute top-0 h-8 w-8 bg-white border-2 border-blue-500 rounded-full shadow-lg transform -translate-x-1/2"
@@ -73,8 +86,17 @@ export default function InterestRateSimulator({
             />
           </div>
         </div>
-        <div className="w-24 text-right">
-          <span className="text-2xl font-semibold text-blue-600">{simulatedRate}%</span>
+        <div className="flex items-center space-x-2">
+          <input
+            type="number"
+            value={simulatedRate}
+            onChange={handleInputChange}
+            className="w-20 px-2 py-1 border border-gray-300 rounded-md text-right bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            min="0"
+            max="100"
+            step="0.1"
+          />
+          <span className="text-2xl font-semibold text-gray-900">%</span>
         </div>
       </div>
 
@@ -91,27 +113,34 @@ export default function InterestRateSimulator({
         <p className="text-sm text-blue-800 mb-2">
           {simulatedRate > currentInterestRate ? (
             <>
-              At {simulatedRate}% interest rate, your money would grow{' '}
+              At {simulatedRate}% interest rate, your money would grow{" "}
               <span className="font-semibold">
-                {((simulatedRate - currentInterestRate) / currentInterestRate * 100).toFixed(1)}% faster
-              </span>{' '}
+                {(
+                  ((simulatedRate - currentInterestRate) /
+                    currentInterestRate) *
+                  100
+                ).toFixed(1)}
+                % faster
+              </span>{" "}
               than your current rate.
             </>
           ) : simulatedRate < currentInterestRate ? (
             <>
-              At {simulatedRate}% interest rate, your money would grow{' '}
+              At {simulatedRate}% interest rate, your money would grow{" "}
               <span className="font-semibold">
-                {((currentInterestRate - simulatedRate) / currentInterestRate * 100).toFixed(1)}% slower
-              </span>{' '}
+                {(
+                  ((currentInterestRate - simulatedRate) /
+                    currentInterestRate) *
+                  100
+                ).toFixed(1)}
+                % slower
+              </span>{" "}
               than your current rate.
             </>
           ) : (
-            'This is your current interest rate.'
+            "This is your current interest rate."
           )}
         </p>
-      </div>
-
-      <div className="mt-4">
         <CompoundInterestChart
           initialBalance={initialBalance}
           interestRate={simulatedRate}
