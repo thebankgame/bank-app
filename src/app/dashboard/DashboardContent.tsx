@@ -207,17 +207,10 @@ export default function DashboardContent({
                 </div>
               </DashboardCard>
               <DashboardCard title="Interest Rate Simulator">
-                <div className="h-[300px]">
-                  <InterestRateSimulator
-                    balance={selectedAccount.balance}
-                    currentRate={selectedAccount.interestRate}
-                    onRateChange={(newRate) => {
-                      // In a real application, you would update the interest rate
-                      // through an API call here
-                      console.log(`New interest rate: ${newRate}%`);
-                    }}
-                  />
-                </div>
+                <InterestRateSimulator
+                  initialBalance={selectedAccount.balance}
+                  initialRate={selectedAccount.interestRate}
+                />
               </DashboardCard>
             </div>
 
