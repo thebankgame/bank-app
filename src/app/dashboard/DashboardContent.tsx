@@ -24,6 +24,35 @@ function generateAccountNumber(): string {
   ).join("-");
 }
 
+// Count the number of midnights between two dates
+function countMidnightsCrossed(startDate: Date, endDate: Date): number {
+  // Create dates at midnight for comparison
+  const startMidnight = new Date(startDate);
+  startMidnight.setHours(0, 0, 0, 0);
+  const endMidnight = new Date(endDate);
+  endMidnight.setHours(0, 0, 0, 0);
+
+  // Calculate the difference in days
+  return Math.floor(
+    (endMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24)
+  );
+}
+
+// Calculate daily interest based on annual rate and previous balance
+function calculateDailyInterest(
+  previousBalance: number,
+  annualInterestRate: number,
+  daysSinceLastTransaction: number
+): number {
+  if (daysSinceLastTransaction <= 0) return 0;
+
+  const dailyRate = annualInterestRate / 100 / 365; // Convert annual percentage to daily decimal
+  return (
+    previousBalance * Math.pow(1 + dailyRate, daysSinceLastTransaction) -
+    previousBalance
+  );
+}
+
 export default function DashboardContent({
   session,
   initialData,
@@ -42,18 +71,41 @@ export default function DashboardContent({
     amount: number;
     type: "deposit" | "withdrawal";
   }) => {
-    const newBalance =
+    const previousTransaction = selectedAccount.transactions[0];
+    const previousBalance = previousTransaction?.runningBalance ?? 0;
+    const previousDate = previousTransaction
+      ? new Date(previousTransaction.date)
+      : new Date(0); // Use epoch if no previous transaction
+    const currentDate = new Date();
+
+    // Calculate complete days (midnights crossed) since last transaction
+    const daysSinceLastTransaction = countMidnightsCrossed(
+      previousDate,
+      currentDate
+    );
+
+    // Calculate accumulated interest
+    const accumulatedInterest = calculateDailyInterest(
+      previousBalance,
+      selectedAccount.interestRate,
+      daysSinceLastTransaction
+    );
+
+    // Calculate new balance including interest
+    const balanceAfterInterest = previousBalance + accumulatedInterest;
+    const finalBalance =
       transaction.type === "deposit"
-        ? selectedAccount.balance + transaction.amount
-        : selectedAccount.balance - transaction.amount;
+        ? balanceAfterInterest + transaction.amount
+        : balanceAfterInterest - transaction.amount;
 
     const newTransaction: Transaction = {
       id: Date.now().toString(),
-      date: new Date().toISOString(),
+      date: currentDate.toISOString(),
       description: transaction.description,
       amount: transaction.amount,
       type: transaction.type,
-      runningBalance: newBalance,
+      accumulatedInterest,
+      runningBalance: finalBalance,
     };
 
     setAccounts((currentAccounts) =>
@@ -61,7 +113,7 @@ export default function DashboardContent({
         if (account.id === selectedAccountId) {
           return {
             ...account,
-            balance: newBalance,
+            balance: finalBalance,
             transactions: [newTransaction, ...account.transactions],
           };
         }

@@ -4,6 +4,7 @@ export type Transaction = {
   description: string;
   amount: number;
   type: "deposit" | "withdrawal";
+  accumulatedInterest: number;
   runningBalance?: number; // Make runningBalance optional
 };
 

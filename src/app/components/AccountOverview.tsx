@@ -37,7 +37,14 @@ export default function AccountOverview({
           )}
         </h3>
         <p className="text-2xl font-semibold mt-2">
-          + {formatCurrency(lastTransaction?.amount || 0)}
+          {lastTransaction ? (
+            <>
+              {lastTransaction.type === "deposit" ? "+" : "-"}{" "}
+              {formatCurrency(lastTransaction.amount)}
+            </>
+          ) : (
+            <>+ {formatCurrency(0)}</>
+          )}
         </p>
       </div>
 

@@ -8,6 +8,7 @@ interface TransactionHistoryProps {
 
 type TransactionWithRunningBalance = Transaction & {
   runningBalance?: number;
+  accumulatedInterest: number;
 };
 
 export default function TransactionHistory({
@@ -50,6 +51,9 @@ export default function TransactionHistory({
               Amount
             </th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Interest
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Balance
             </th>
           </tr>
@@ -72,6 +76,9 @@ export default function TransactionHistory({
                 >
                   {txn.type === "deposit" ? "+" : "-"}{" "}
                   {formatCurrency(Math.abs(txn.amount))}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-blue-600">
+                  + {formatCurrency(txn.accumulatedInterest)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
                   {txn.runningBalance !== undefined

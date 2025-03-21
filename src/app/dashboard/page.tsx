@@ -17,7 +17,7 @@ const createInitialData = (): UserBankData => {
   const initialAccountId = Date.now().toString();
   const initialAccount: BankAccount = {
     id: initialAccountId,
-    name: "Family Account",
+    name: "Playground",
     accountNumber: generateAccountNumber(),
     balance: 0,
     interestRate: 2.5,
