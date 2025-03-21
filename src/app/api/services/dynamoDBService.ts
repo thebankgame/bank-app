@@ -7,7 +7,11 @@ import {
   UpdateCommand,
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { CognitoIdentityClient, GetIdCommand, GetCredentialsForIdentityCommand } from "@aws-sdk/client-cognito-identity";
+import {
+  CognitoIdentityClient,
+  GetIdCommand,
+  GetCredentialsForIdentityCommand,
+} from "@aws-sdk/client-cognito-identity";
 import { BankAccount, Transaction } from "@/types/bank";
 import { v4 as uuidv4 } from "uuid";
 import { getServerSession } from "next-auth";
@@ -36,11 +40,14 @@ export async function createDynamoDBClient() {
     throw new TokenExpiredError("Token has expired");
   }
 
-  const cognitoIdentityClient = new CognitoIdentityClient({ region: process.env.AWS_REGION });
+  const cognitoIdentityClient = new CognitoIdentityClient({
+    region: process.env.AWS_REGION,
+  });
   const getIdCommand = new GetIdCommand({
     IdentityPoolId: process.env.COGNITO_IDENTITY_POOL_ID,
     Logins: {
-      [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]: session.idToken as string,
+      [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]:
+        session.idToken as string,
     },
   });
 
@@ -53,11 +60,14 @@ export async function createDynamoDBClient() {
   const getCredentialsCommand = new GetCredentialsForIdentityCommand({
     IdentityId,
     Logins: {
-      [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]: session.idToken as string,
+      [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]:
+        session.idToken as string,
     },
   });
 
-  const { Credentials } = await cognitoIdentityClient.send(getCredentialsCommand);
+  const { Credentials } = await cognitoIdentityClient.send(
+    getCredentialsCommand
+  );
   if (!Credentials) {
     throw new Error("Failed to get temporary credentials");
   }
@@ -100,7 +110,9 @@ export async function getAccounts(): Promise<BankAccount[]> {
   }
 }
 
-export async function getAccount(accountId: string): Promise<BankAccount | null> {
+export async function getAccount(
+  accountId: string
+): Promise<BankAccount | null> {
   try {
     const { docClient, cognitoIdentityId } = await createDynamoDBClient();
 
@@ -126,10 +138,10 @@ export async function getAccount(accountId: string): Promise<BankAccount | null>
 export async function createAccount(name: string): Promise<BankAccount> {
   try {
     const { docClient, cognitoIdentityId } = await createDynamoDBClient();
-    
+
     const accountId = uuidv4();
     const now = new Date().toISOString();
-    
+
     const newAccount: BankAccount = {
       userId: cognitoIdentityId,
       accountId,
@@ -159,7 +171,10 @@ export async function createAccount(name: string): Promise<BankAccount> {
 
 export async function addTransaction(
   accountId: string,
-  transaction: Omit<Transaction, "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest">
+  transaction: Omit<
+    Transaction,
+    "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
+  >
 ): Promise<BankAccount> {
   try {
     const { docClient, cognitoIdentityId } = await createDynamoDBClient();
@@ -170,67 +185,41 @@ export async function addTransaction(
     }
 
     const now = new Date().toISOString();
-    
+
     // Calculate accumulated interest up to this point
     const sortedTransactions = [...account.transactions].sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-console.log('sortedTransactions:', sortedTransactions);
-
-let totalAccumulatedInterest = 0;
-let newRunningBalance = 0;
-
-if (sortedTransactions.length > 0) {
-
-    // Calculate running balances for all transactions
-    // const runningBalances = sortedTransactions.reduce(
-    //   (acc, transaction, index) => {
-    //     const prevBalance = index === 0 ? 0 : acc[index - 1];
-    //     const amount = transaction.type === "deposit" ? transaction.amount : -transaction.amount;
-    //     acc[index] = prevBalance + amount;
-    //     return acc;
-    //   },
-    //   [] as number[]
-    // );
-// console.log('runningBalances:', runningBalances);
-    // Calculate accumulated interest for all transactions
-    // const accumulatedInterest = sortedTransactions.reduce(
-    //   (acc, transaction, index) => {
-    //     if (index === 0) return [0];
-    //     const prevTransaction = sortedTransactions[index - 1];
-    //     const daysBetweenTransactions =
-    //       (new Date(transaction.timestamp).getTime() -
-    //         new Date(prevTransaction.timestamp).getTime()) /
-    //       (1000 * 60 * 60 * 24);
-    //     const prevBalance = runningBalances[index - 1];
-    //     acc[index] = acc[index - 1] + prevBalance * (0.025 / 365) * daysBetweenTransactions;
-    //     return acc;
-    //   },
-    //   [] as number[]
-    // );
-    
-    // console.log('accumulatedInterest:', accumulatedInterest);
-   
-    // Calculate interest since last transaction
-    const lastTransaction = sortedTransactions[0];
-    const lastBalance = sortedTransactions[0].runningBalance || 0;
-    // const lastAccumulatedInterest = accumulatedInterest[0];
-    const lastTransactionDate = new Date(lastTransaction?.timestamp || now);
-    
-    // Calculate days between last transaction and now
-    const daysSinceLastTransaction = Math.floor(
-      (new Date(now).getTime() - lastTransactionDate.getTime()) / (1000 * 60 * 60 * 24)
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-    // Calculate interest since last transaction
-    totalAccumulatedInterest = lastBalance * (0.025 / 365) * daysSinceLastTransaction;
-    // totalAccumulatedInterest = (lastAccumulatedInterest + interestSinceLastTransaction) ;
+    let totalAccumulatedInterest = 0;
+    let newRunningBalance = 0;
 
-    // Calculate the new running balance including the new transaction
-    const newTransactionAmount = transaction.type === "deposit" ? transaction.amount : -transaction.amount;
-    newRunningBalance = lastBalance + newTransactionAmount + totalAccumulatedInterest;
-  }
-  
+    if (sortedTransactions.length > 0) {
+      // Calculate interest since last transaction
+      const lastTransaction = sortedTransactions[0];
+      const lastBalance = sortedTransactions[0].runningBalance || 0;
+      const lastTransactionDate = new Date(lastTransaction?.timestamp || now);
+
+      // Calculate days between last transaction and now
+      const daysSinceLastTransaction = Math.floor(
+        (new Date(now).getTime() - lastTransactionDate.getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
+
+      // Calculate interest since last transaction
+      totalAccumulatedInterest =
+        lastBalance * (0.025 / 365) * daysSinceLastTransaction;
+
+      // Calculate the new running balance including the new transaction
+      const newTransactionAmount =
+        transaction.type === "deposit"
+          ? transaction.amount
+          : -transaction.amount;
+      newRunningBalance =
+        lastBalance + newTransactionAmount + totalAccumulatedInterest;
+    }
+
     const newTransaction: Transaction = {
       transactionId: uuidv4(),
       ...transaction,
@@ -238,7 +227,6 @@ if (sortedTransactions.length > 0) {
       runningBalance: newRunningBalance,
       accumulatedInterest: totalAccumulatedInterest,
     };
-console.log('accumulatedInterest:', totalAccumulatedInterest);
     const command = new UpdateCommand({
       TableName: "BankAccounts",
       Key: {
@@ -248,7 +236,10 @@ console.log('accumulatedInterest:', totalAccumulatedInterest);
       UpdateExpression:
         "SET balance = balance + :amount, transactions = list_append(if_not_exists(transactions, :empty_list), :transaction)",
       ExpressionAttributeValues: {
-        ":amount": transaction.type === "deposit" ? transaction.amount : -transaction.amount,
+        ":amount":
+          transaction.type === "deposit"
+            ? transaction.amount
+            : -transaction.amount,
         ":transaction": [newTransaction],
         ":empty_list": [],
       },
@@ -272,4 +263,4 @@ function generateAccountNumber(): string {
       .toString()
       .padStart(4, "0")
   ).join("-");
-} 
+}
