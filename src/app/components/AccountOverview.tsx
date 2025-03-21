@@ -27,20 +27,19 @@ export default function AccountOverview({
         <p className="text-2xl font-semibold mt-2">{formatCurrency(balance)}</p>
       </div>
 
-      {lastTransaction && (
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
-          <h3 className="text-sm font-medium opacity-80 flex items-center">
-            Last Transaction
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
+        <h3 className="text-sm font-medium opacity-80 flex items-center">
+          Last Transaction
+          {lastTransaction && (
             <span className="ml-1">
               ({new Date(lastTransaction.date).toLocaleDateString()})
             </span>
-          </h3>
-          <p className="text-2xl font-semibold mt-2">
-            {lastTransaction.type === "deposit" ? "+" : "-"}{" "}
-            {formatCurrency(lastTransaction.amount)}
-          </p>
-        </div>
-      )}
+          )}
+        </h3>
+        <p className="text-2xl font-semibold mt-2">
+          + {formatCurrency(lastTransaction?.amount || 0)}
+        </p>
+      </div>
 
       <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
         <h3 className="text-sm font-medium opacity-80">Interest Rate</h3>

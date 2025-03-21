@@ -6,6 +6,10 @@ interface TransactionHistoryProps {
   transactions: Transaction[];
 }
 
+type TransactionWithRunningBalance = Transaction & {
+  runningBalance?: number;
+};
+
 export default function TransactionHistory({
   transactions,
 }: TransactionHistoryProps) {
@@ -45,29 +49,38 @@ export default function TransactionHistory({
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Amount
             </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Balance
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {transactions.map((transaction) => (
-            <tr key={transaction.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatDateTime(transaction.date)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {transaction.description}
-              </td>
-              <td
-                className={`px-6 py-4 whitespace-nowrap text-sm text-right ${
-                  transaction.type === "deposit"
-                    ? "text-green-600"
-                    : "text-red-600"
-                }`}
-              >
-                {transaction.type === "deposit" ? "+" : "-"}{" "}
-                {formatCurrency(Math.abs(transaction.amount))}
-              </td>
-            </tr>
-          ))}
+          {transactions.map((transaction) => {
+            const txn = transaction as TransactionWithRunningBalance;
+            return (
+              <tr key={txn.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {formatDateTime(txn.date)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {txn.description}
+                </td>
+                <td
+                  className={`px-6 py-4 whitespace-nowrap text-sm text-right ${
+                    txn.type === "deposit" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {txn.type === "deposit" ? "+" : "-"}{" "}
+                  {formatCurrency(Math.abs(txn.amount))}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                  {txn.runningBalance !== undefined
+                    ? formatCurrency(txn.runningBalance)
+                    : "Unavailable"}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

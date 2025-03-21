@@ -42,22 +42,23 @@ export default function DashboardContent({
     amount: number;
     type: "deposit" | "withdrawal";
   }) => {
+    const newBalance =
+      transaction.type === "deposit"
+        ? selectedAccount.balance + transaction.amount
+        : selectedAccount.balance - transaction.amount;
+
     const newTransaction: Transaction = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
       description: transaction.description,
       amount: transaction.amount,
       type: transaction.type,
+      runningBalance: newBalance,
     };
 
     setAccounts((currentAccounts) =>
       currentAccounts.map((account) => {
         if (account.id === selectedAccountId) {
-          const newBalance =
-            transaction.type === "deposit"
-              ? account.balance + transaction.amount
-              : account.balance - transaction.amount;
-
           return {
             ...account,
             balance: newBalance,
