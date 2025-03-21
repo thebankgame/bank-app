@@ -15,7 +15,7 @@ export default function NewTransactionForm({
 }: NewTransactionFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [type, setType] = useState<"deposit" | "withdrawal">("deposit");
+  const [type, setType] = useState<"deposit" | "withdrawal">("withdrawal");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +29,7 @@ export default function NewTransactionForm({
       // Reset form
       setDescription("");
       setAmount("");
-      setType("deposit");
+      setType("withdrawal");
     }
   };
 

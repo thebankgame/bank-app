@@ -44,7 +44,7 @@ export default function DashboardContent({
   }) => {
     const newTransaction: Transaction = {
       id: Date.now().toString(),
-      date: new Date().toISOString().split("T")[0],
+      date: new Date().toISOString(),
       description: transaction.description,
       amount: transaction.amount,
       type: transaction.type,
@@ -107,28 +107,33 @@ export default function DashboardContent({
 
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-semibold text-gray-900">
-              Welcome, {session.user?.name || session.user?.email}
-            </h1>
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm text-gray-600">
+              Welcome back, {session.user?.name || session.user?.email}
+            </div>
             <div className="text-sm text-gray-500">
               Last login: {new Date().toLocaleDateString()}
             </div>
           </div>
 
-          <div className="mb-6">
-            <AccountSelector
-              accounts={accounts}
-              selectedAccountId={selectedAccountId}
-              onAccountSelect={setSelectedAccountId}
-              onCreateAccount={handleCreateAccount}
-            />
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <h1 className="text-4xl font-bold text-gray-900">
+                {selectedAccount.name}
+              </h1>
+              <AccountSelector
+                accounts={accounts}
+                selectedAccountId={selectedAccountId}
+                onAccountSelect={setSelectedAccountId}
+                onCreateAccount={handleCreateAccount}
+              />
+            </div>
           </div>
 
           <div className="space-y-6">
             {/* Account Overview Section */}
             <DashboardCard
-              title={`${selectedAccount.name} (${selectedAccount.accountNumber})`}
+              title={`Account Details (${selectedAccount.accountNumber})`}
               className="mb-6"
             >
               <AccountOverview

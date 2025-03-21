@@ -1,6 +1,6 @@
 export interface Transaction {
   id: string;
-  date: string;
+  date: string; // ISO 8601 UTC timestamp
   description: string;
   amount: number;
   type: 'deposit' | 'withdrawal';

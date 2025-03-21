@@ -27,23 +27,25 @@ export default function AccountOverview({
         <p className="text-2xl font-semibold mt-2">{formatCurrency(balance)}</p>
       </div>
 
-      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-        <h3 className="text-sm font-medium opacity-80">Interest Rate</h3>
-        <p className="text-2xl font-semibold mt-2">{interestRate}%</p>
-      </div>
-
       {lastTransaction && (
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
-          <h3 className="text-sm font-medium opacity-80">Last Transaction</h3>
+          <h3 className="text-sm font-medium opacity-80 flex items-center">
+            Last Transaction
+            <span className="ml-1">
+              ({new Date(lastTransaction.date).toLocaleDateString()})
+            </span>
+          </h3>
           <p className="text-2xl font-semibold mt-2">
             {lastTransaction.type === "deposit" ? "+" : "-"}{" "}
             {formatCurrency(lastTransaction.amount)}
           </p>
-          <p className="text-sm opacity-80 mt-1">
-            {new Date(lastTransaction.date).toLocaleDateString()}
-          </p>
         </div>
       )}
+
+      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+        <h3 className="text-sm font-medium opacity-80">Interest Rate</h3>
+        <p className="text-2xl font-semibold mt-2">{interestRate}%</p>
+      </div>
     </div>
   );
 }
