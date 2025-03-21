@@ -62,35 +62,46 @@ export default function TransactionHistory({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {transactions.map((transaction, index) => {
-            const runningBalance = transactions
-              .slice(0, index + 1)
-              .reduce((acc, t) => {
-                const amount = t.type === "deposit" ? t.amount : -t.amount;
-                return acc + amount;
-              }, 0);
+          {(() => {
+            const sortedTransactions = [...transactions].sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
+            );
 
-            const accumulatedInterest = transactions
-              .slice(0, index + 1)
-              .reduce((acc, t, i) => {
-                if (i === 0) return 0; // No interest on first transaction
-                const prevTransaction = transactions[i - 1];
+            // Calculate running balances for all transactions
+            const runningBalances = sortedTransactions.reduce(
+              (acc, transaction, index) => {
+                const prevBalance = index === 0 ? 0 : acc[index - 1];
+                const amount =
+                  transaction.type === "deposit"
+                    ? transaction.amount
+                    : -transaction.amount;
+                acc[index] = prevBalance + amount;
+                return acc;
+              },
+              [] as number[]
+            );
+
+            // Calculate accumulated interest for all transactions
+            const accumulatedInterest = sortedTransactions.reduce(
+              (acc, transaction, index) => {
+                if (index === 0) return [0];
+                const prevTransaction = sortedTransactions[index - 1];
                 const daysBetweenTransactions =
-                  (new Date(t.timestamp).getTime() -
+                  (new Date(transaction.timestamp).getTime() -
                     new Date(prevTransaction.timestamp).getTime()) /
                   (1000 * 60 * 60 * 24);
-                const prevBalance = transactions
-                  .slice(0, i)
-                  .reduce((acc, t) => {
-                    const amount = t.type === "deposit" ? t.amount : -t.amount;
-                    return acc + amount;
-                  }, 0);
-                return (
-                  acc + prevBalance * (0.025 / 365) * daysBetweenTransactions
-                );
-              }, 0);
+                const prevBalance = runningBalances[index - 1];
+                acc[index] =
+                  acc[index - 1] +
+                  prevBalance * (0.025 / 365) * daysBetweenTransactions;
+                return acc;
+              },
+              [] as number[]
+            );
 
-            return (
+            return sortedTransactions.map((transaction, index) => (
               <tr key={transaction.transactionId}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(transaction.timestamp).toLocaleString(undefined, {
@@ -118,16 +129,19 @@ export default function TransactionHistory({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                  {accumulatedInterest > 0
-                    ? `+$${accumulatedInterest.toFixed(2)}`
+                  {accumulatedInterest[index] > 0
+                    ? `+$${accumulatedInterest[index].toFixed(2)}`
                     : "$0.00"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                  ${(runningBalance + accumulatedInterest).toFixed(2)}
+                  $
+                  {(
+                    runningBalances[index] + accumulatedInterest[index]
+                  ).toFixed(2)}
                 </td>
               </tr>
-            );
-          })}
+            ));
+          })()}
         </tbody>
       </table>
     </div>
