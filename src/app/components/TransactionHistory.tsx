@@ -103,25 +103,18 @@ export default function TransactionHistory({
             );
 
             // Calculate interest since last transaction using shared function
-            const {
-              interestSinceLastTransaction,
-              newBalance,
-              today,
-            } = calculateInterestSinceLastTransaction(transactions, currentBalance);
+            const { interestSinceLastTransaction, newBalance, today } =
+              calculateInterestSinceLastTransaction(
+                transactions,
+                currentBalance
+              );
 
             return (
               <>
                 {/* Row for accumulated interest since last transaction */}
                 <tr className="bg-blue-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {today.toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "numeric",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })}
+                    Now
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     Accumulated interest
