@@ -11,6 +11,7 @@ import AccountSelector from "../components/AccountSelector";
 import type { BankAccount, UserBankData } from "../../types/bank";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
+import { calculateInterestSinceLastTransaction } from "../utils/interest";
 
 interface DashboardContentProps {
   session: Session;
@@ -213,7 +214,15 @@ export default function DashboardContent({
                   Current Balance
                 </h3>
                 <p className="text-2xl font-bold text-green-900">
-                  ${selectedAccount.balance.toFixed(2)}
+                  $
+                  {(() => {
+                    const { newBalance } =
+                      calculateInterestSinceLastTransaction(
+                        selectedAccount.transactions,
+                        selectedAccount.balance
+                      );
+                    return newBalance.toFixed(2);
+                  })()}
                 </p>
               </div>
               <div className="bg-purple-100 rounded-lg shadow-md p-4">

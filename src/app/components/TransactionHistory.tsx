@@ -1,6 +1,7 @@
 "use client";
 
 import type { Transaction } from "../../types/bank";
+import { calculateInterestSinceLastTransaction } from "../utils/interest";
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
@@ -101,46 +102,91 @@ export default function TransactionHistory({
               [] as number[]
             );
 
-            return sortedTransactions.map((transaction, index) => (
-              <tr key={transaction.transactionId}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(transaction.timestamp).toLocaleString(undefined, {
-                    year: "numeric",
-                    month: "numeric",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {transaction.description}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                  <span
-                    className={
-                      transaction.type === "deposit"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }
-                  >
-                    {transaction.type === "deposit" ? "+" : "-"}$
-                    {transaction.amount.toFixed(2)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                  {accumulatedInterest[index] > 0
-                    ? `+$${accumulatedInterest[index].toFixed(2)}`
-                    : "$0.00"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                  $
-                  {(
-                    runningBalances[index] + accumulatedInterest[index]
-                  ).toFixed(2)}
-                </td>
-              </tr>
-            ));
+            // Calculate interest since last transaction using shared function
+            const {
+              interestSinceLastTransaction,
+              newBalance,
+              today,
+            } = calculateInterestSinceLastTransaction(transactions, currentBalance);
+
+            return (
+              <>
+                {/* Row for accumulated interest since last transaction */}
+                <tr className="bg-blue-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {today.toLocaleString(undefined, {
+                      year: "numeric",
+                      month: "numeric",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    Accumulated interest
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                    <span className="text-green-600">
+                      +${interestSinceLastTransaction.toFixed(2)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
+                    {interestSinceLastTransaction > 0
+                      ? `+$${interestSinceLastTransaction.toFixed(2)}`
+                      : "$0.00"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                    ${newBalance.toFixed(2)}
+                  </td>
+                </tr>
+
+                {/* Existing transaction rows */}
+                {sortedTransactions.map((transaction, index) => (
+                  <tr key={transaction.transactionId}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(transaction.timestamp).toLocaleString(
+                        undefined,
+                        {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        }
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                      <span
+                        className={
+                          transaction.type === "deposit"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {transaction.type === "deposit" ? "+" : "-"}$
+                        {transaction.amount.toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
+                      {accumulatedInterest[index] > 0
+                        ? `+$${accumulatedInterest[index].toFixed(2)}`
+                        : "$0.00"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                      $
+                      {(
+                        runningBalances[index] + accumulatedInterest[index]
+                      ).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </>
+            );
           })()}
         </tbody>
       </table>
