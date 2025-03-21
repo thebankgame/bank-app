@@ -18,12 +18,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account && profile) {
-        console.log("SignIn Callback:", {
-          userId: profile.sub,
-          email: profile.email,
-          hasIdToken: !!account.id_token,
-          hasAccessToken: !!account.access_token
-        });
+        // console.log("SignIn Callback:", {
+        //   userId: profile.sub,
+        //   email: profile.email,
+        //   hasIdToken: !!account.id_token,
+        //   hasAccessToken: !!account.access_token
+        // });
         return true;
       }
       return false;
@@ -31,12 +31,12 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account, profile, user }) {
       // Initial sign in
       if (account && profile) {
-        console.log("JWT Callback - Initial sign in:", {
-          sub: profile.sub,
-          email: profile.email,
-          hasIdToken: !!account.id_token,
-          hasAccessToken: !!account.access_token
-        });
+        // console.log("JWT Callback - Initial sign in:", {
+        //   sub: profile.sub,
+        //   email: profile.email,
+        //   hasIdToken: !!account.id_token,
+        //   hasAccessToken: !!account.access_token
+        // });
         
         return {
           ...token,
@@ -52,13 +52,13 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log("Session Callback - Token data:", {
-        sub: token.sub,
-        id: token.id,
-        hasIdToken: !!token.idToken,
-        hasAccessToken: !!token.accessToken,
-        tokenKeys: Object.keys(token)
-      });
+      // console.log("Session Callback - Token data:", {
+      //   sub: token.sub,
+      //   id: token.id,
+      //   hasIdToken: !!token.idToken,
+      //   hasAccessToken: !!token.accessToken,
+      //   tokenKeys: Object.keys(token)
+      // });
 
       // Always return a valid session with the user ID
       return {
@@ -78,10 +78,10 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
-      console.log("SignIn Event:", message);
+      // console.log("SignIn Event:", message);
     },
     async session(message) {
-      console.log("Session Event:", message);
+      // console.log("Session Event:", message);
     },
   },
   debug: process.env.NODE_ENV === "development",

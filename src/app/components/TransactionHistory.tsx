@@ -5,19 +5,19 @@ import { calculateInterestSinceLastTransaction } from "../utils/interest";
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
-  currentBalance: number;
 }
-
-type TransactionWithRunningBalance = Transaction & {
-  runningBalance?: number;
-  accumulatedInterest: number;
-};
 
 export default function TransactionHistory({
   transactions,
-  currentBalance,
 }: TransactionHistoryProps) {
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        signDisplay: "never",
+      }).format(0);
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -26,8 +26,6 @@ export default function TransactionHistory({
   };
 
   const formatDateTime = (isoString: string) => {
-    const date = new Date(isoString);
-    // Format in user's local timezone
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "numeric",
@@ -36,8 +34,8 @@ export default function TransactionHistory({
       minute: "2-digit",
       second: "2-digit",
       hour12: true,
-      timeZoneName: "short", // Shows timezone abbreviation (e.g., EST, PST)
-    }).format(date);
+      timeZoneName: "short",
+    }).format(new Date(isoString));
   };
 
   return (
@@ -70,85 +68,44 @@ export default function TransactionHistory({
                 new Date(a.timestamp).getTime()
             );
 
-            // Calculate running balances for all transactions
-            const runningBalances = sortedTransactions.reduce(
-              (acc, transaction, index) => {
-                const prevBalance = index === 0 ? 0 : acc[index - 1];
-                const amount =
-                  transaction.type === "deposit"
-                    ? transaction.amount
-                    : -transaction.amount;
-                acc[index] = prevBalance + amount;
-                return acc;
-              },
-              [] as number[]
-            );
-
-            // Calculate accumulated interest for all transactions
-            const accumulatedInterest = sortedTransactions.reduce(
-              (acc, transaction, index) => {
-                if (index === 0) return [0];
-                const prevTransaction = sortedTransactions[index - 1];
-                const daysBetweenTransactions =
-                  (new Date(transaction.timestamp).getTime() -
-                    new Date(prevTransaction.timestamp).getTime()) /
-                  (1000 * 60 * 60 * 24);
-                const prevBalance = runningBalances[index - 1];
-                acc[index] =
-                  acc[index - 1] +
-                  prevBalance * (0.025 / 365) * daysBetweenTransactions;
-                return acc;
-              },
-              [] as number[]
-            );
-
             // Calculate interest since last transaction using shared function
-            const { interestSinceLastTransaction, newBalance, today } =
+            const { interestSinceLastTransaction } =
               calculateInterestSinceLastTransaction(
-                transactions,
-                currentBalance
+                sortedTransactions,
+                sortedTransactions[0]?.runningBalance || 0
               );
+
+            // Calculate new balance including latest interest
+            const latestBalance = (sortedTransactions[0]?.runningBalance || 0) + (interestSinceLastTransaction || 0);
 
             return (
               <>
                 {/* Row for accumulated interest since last transaction */}
                 <tr className="bg-blue-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    Now
+                    {formatDateTime(new Date().toISOString())}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     Accumulated interest
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                     <span className="text-green-600">
-                      +${interestSinceLastTransaction.toFixed(2)}
+                      {formatCurrency(interestSinceLastTransaction)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                    {interestSinceLastTransaction > 0
-                      ? `+$${interestSinceLastTransaction.toFixed(2)}`
-                      : "$0.00"}
+                    {formatCurrency(interestSinceLastTransaction)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                    ${newBalance.toFixed(2)}
+                    {formatCurrency(latestBalance)}
                   </td>
                 </tr>
 
-                {/* Existing transaction rows */}
-                {sortedTransactions.map((transaction, index) => (
+                {/* Transaction rows */}
+                {sortedTransactions.map((transaction) => (
                   <tr key={transaction.transactionId}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(transaction.timestamp).toLocaleString(
-                        undefined,
-                        {
-                          year: "numeric",
-                          month: "numeric",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        }
-                      )}
+                      {formatDateTime(transaction.timestamp)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {transaction.description}
@@ -161,20 +118,18 @@ export default function TransactionHistory({
                             : "text-red-600"
                         }
                       >
-                        {transaction.type === "deposit" ? "+" : "-"}$
-                        {transaction.amount.toFixed(2)}
+                        {formatCurrency(
+                          transaction.type === "deposit"
+                            ? transaction.amount
+                            : -transaction.amount
+                        )}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                      {accumulatedInterest[index] > 0
-                        ? `+$${accumulatedInterest[index].toFixed(2)}`
-                        : "$0.00"}
+                      {formatCurrency(transaction.accumulatedInterest)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                      $
-                      {(
-                        runningBalances[index] + accumulatedInterest[index]
-                      ).toFixed(2)}
+                      {formatCurrency(transaction.runningBalance)}
                     </td>
                   </tr>
                 ))}

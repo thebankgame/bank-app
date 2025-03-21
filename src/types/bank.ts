@@ -1,10 +1,11 @@
 export interface Transaction {
   transactionId: string;
-  description: string;
+  type: "deposit" | "withdrawal";
   amount: number;
-  type: 'deposit' | 'withdrawal';
+  description: string;
   timestamp: string;
   runningBalance: number;
+  accumulatedInterest: number;
 }
 
 export interface BankAccount {

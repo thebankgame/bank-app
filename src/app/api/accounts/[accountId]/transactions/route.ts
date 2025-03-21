@@ -7,7 +7,7 @@ export async function POST(
   request: Request,
   context: { params: { accountId: string } }
 ) {
-  const { accountId } = await context.params;
+  const { accountId } = context.params;
   if (!accountId) {
     return new NextResponse("Account ID is required", { status: 400 });
   }
@@ -24,34 +24,19 @@ export async function POST(
     }
     
     // Verify the account belongs to the user
-    const account = await getAccount(session.user.id, accountId, session.idToken);
+    const account = await getAccount(accountId);
     if (!account) {
       return new NextResponse("Account not found", { status: 404 });
     }
 
-    // Calculate accumulated interest since last transaction
-    const lastTransaction = account.transactions[account.transactions.length - 1];
-    const lastTransactionTime = lastTransaction ? new Date(lastTransaction.timestamp) : new Date(account.createdAt);
-    const currentTime = new Date();
-    const daysSinceLastTransaction = (currentTime.getTime() - lastTransactionTime.getTime()) / (1000 * 60 * 60 * 24);
-    const accumulatedInterest = account.balance * (0.025 / 365) * daysSinceLastTransaction;
+    // Add the new transaction
+    const updatedAccount = await addTransaction(accountId, {
+      type,
+      amount,
+      description,
+    });
 
-    // Add interest to the balance before applying the new transaction
-    const balanceWithInterest = account.balance + accumulatedInterest;
-
-    // Create the new transaction with the updated balance
-    const transaction = await addTransaction(
-      session.user.id,
-      accountId,
-      {
-        description,
-        amount,
-        type,
-      },
-      session.idToken
-    );
-
-    return NextResponse.json(transaction);
+    return NextResponse.json(updatedAccount);
   } catch (error) {
     console.error("Error creating transaction:", error);
     return new NextResponse("Internal Server Error", { status: 500 });

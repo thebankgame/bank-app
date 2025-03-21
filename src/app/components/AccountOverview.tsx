@@ -1,12 +1,19 @@
 "use client";
 
 import type { BankAccount } from "../../types/bank";
+import { calculateInterestSinceLastTransaction } from "../utils/interest";
 
 interface AccountOverviewProps {
   account: BankAccount;
 }
 
 export default function AccountOverview({ account }: AccountOverviewProps) {
+  // Calculate current balance: last transaction's running balance + any accumulated interest
+  const { newBalance } = calculateInterestSinceLastTransaction(
+    account.transactions,
+    0 // Not used anymore since we use running balances
+  );
+
   return (
     <div className="space-y-4">
       <div>
@@ -19,7 +26,7 @@ export default function AccountOverview({ account }: AccountOverviewProps) {
           {new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD",
-          }).format(account.balance)}
+          }).format(newBalance)}
         </p>
       </div>
       <div>
