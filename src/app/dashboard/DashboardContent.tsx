@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardCard from "../components/DashboardCard";
 import AccountOverview from "../components/AccountOverview";
 import TransactionHistory from "../components/TransactionHistory";
@@ -8,48 +8,36 @@ import CompoundInterestChart from "../components/CompoundInterestChart";
 import InterestRateSimulator from "../components/InterestRateSimulator";
 import NewTransactionForm from "../components/NewTransactionForm";
 import AccountSelector from "../components/AccountSelector";
-import { BankAccount, Transaction, UserBankData } from "@/types/bank";
+import type { BankAccount, UserBankData } from "../../types/bank";
 import { Session } from "next-auth";
+import { useRouter } from "next/navigation";
 
 interface DashboardContentProps {
   session: Session;
   initialData: UserBankData;
 }
 
-function generateAccountNumber(): string {
-  return Array.from({ length: 4 }, () =>
-    Math.floor(Math.random() * 10000)
-      .toString()
-      .padStart(4, "0")
-  ).join("-");
-}
-
-// Count the number of midnights between two dates
-function countMidnightsCrossed(startDate: Date, endDate: Date): number {
-  // Create dates at midnight for comparison
-  const startMidnight = new Date(startDate);
-  startMidnight.setHours(0, 0, 0, 0);
-  const endMidnight = new Date(endDate);
-  endMidnight.setHours(0, 0, 0, 0);
-
-  // Calculate the difference in days
-  return Math.floor(
-    (endMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24)
-  );
-}
-
-// Calculate daily interest based on annual rate and previous balance
-function calculateDailyInterest(
-  previousBalance: number,
-  annualInterestRate: number,
-  daysSinceLastTransaction: number
-): number {
-  if (daysSinceLastTransaction <= 0) return 0;
-
-  const dailyRate = annualInterestRate / 100 / 365; // Convert annual percentage to daily decimal
+// Create a client component for the error UI
+function ErrorDisplay({
+  error,
+  onRetry,
+}: {
+  error: string;
+  onRetry: () => void;
+}) {
   return (
-    previousBalance * Math.pow(1 + dailyRate, daysSinceLastTransaction) -
-    previousBalance
+    <div className="p-8 max-w-xl mx-auto">
+      <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+        <h2 className="text-xl font-bold text-red-700 mb-2">Error</h2>
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          onClick={onRetry}
+          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -57,195 +45,202 @@ export default function DashboardContent({
   session,
   initialData,
 }: DashboardContentProps) {
+  const router = useRouter();
   const [accounts, setAccounts] = useState<BankAccount[]>(initialData.accounts);
   const [selectedAccountId, setSelectedAccountId] = useState<string>(
     initialData.selectedAccountId
   );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const selectedAccount = accounts.find(
-    (account) => account.id === selectedAccountId
-  )!;
+    (account) => account.accountId === selectedAccountId
+  );
 
-  const handleNewTransaction = (transaction: {
-    description: string;
-    amount: number;
+  const refreshAccounts = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/accounts", {
+        headers: {
+          Authorization: `Bearer ${session.idToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 401) {
+        // Token expired, redirect to sign in
+        router.push("/api/auth/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch accounts: ${response.statusText}`);
+      }
+
+      const data: BankAccount[] = await response.json();
+      setAccounts(data);
+      if (data.length > 0 && !selectedAccountId) {
+        setSelectedAccountId(data[0].accountId);
+      }
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load accounts"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshAccounts();
+  }, [session.idToken]);
+
+  const handleNewTransaction = async (transaction: {
     type: "deposit" | "withdrawal";
+    amount: number;
+    description: string;
   }) => {
-    const previousTransaction = selectedAccount.transactions[0];
-    const previousBalance = previousTransaction?.runningBalance ?? 0;
-    const previousDate = previousTransaction
-      ? new Date(previousTransaction.date)
-      : new Date(0); // Use epoch if no previous transaction
-    const currentDate = new Date();
+    if (!selectedAccount) return;
 
-    // Calculate complete days (midnights crossed) since last transaction
-    const daysSinceLastTransaction = countMidnightsCrossed(
-      previousDate,
-      currentDate
-    );
-
-    // Calculate accumulated interest
-    const accumulatedInterest = calculateDailyInterest(
-      previousBalance,
-      selectedAccount.interestRate,
-      daysSinceLastTransaction
-    );
-
-    // Calculate new balance including interest
-    const balanceAfterInterest = previousBalance + accumulatedInterest;
-    const finalBalance =
-      transaction.type === "deposit"
-        ? balanceAfterInterest + transaction.amount
-        : balanceAfterInterest - transaction.amount;
-
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      date: currentDate.toISOString(),
-      description: transaction.description,
-      amount: transaction.amount,
-      type: transaction.type,
-      accumulatedInterest,
-      runningBalance: finalBalance,
-    };
-
-    setAccounts((currentAccounts) =>
-      currentAccounts.map((account) => {
-        if (account.id === selectedAccountId) {
-          return {
-            ...account,
-            balance: finalBalance,
-            transactions: [newTransaction, ...account.transactions],
-          };
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `/api/accounts/${selectedAccount.accountId}/transactions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.idToken}`,
+          },
+          body: JSON.stringify(transaction),
         }
-        return account;
-      })
+      );
+
+      if (response.status === 401) {
+        // Token expired, redirect to sign in
+        router.push("/api/auth/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to create transaction");
+      }
+
+      await refreshAccounts();
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to create transaction"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateAccount = async (name: string) => {
+    try {
+      const response = await fetch("/api/accounts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create account");
+
+      const newAccount: BankAccount = await response.json();
+      setAccounts((current) => [...current, newAccount]);
+      setSelectedAccountId(newAccount.accountId);
+    } catch (error) {
+      console.error("Error creating account:", error);
+    }
+  };
+
+  if (error) {
+    return <ErrorDisplay error={error} onRetry={refreshAccounts} />;
+  }
+
+  if (isLoading && accounts.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+      </div>
     );
-  };
-
-  const handleCreateAccount = (name: string) => {
-    const newAccount: BankAccount = {
-      id: Date.now().toString(),
-      name,
-      accountNumber: generateAccountNumber(),
-      balance: 0,
-      interestRate: 2.5, // Default interest rate
-      transactions: [],
-    };
-
-    setAccounts((current) => [...current, newAccount]);
-    setSelectedAccountId(newAccount.id);
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex-shrink-0">
-              <h1 className="text-xl font-bold text-blue-600">Bank Game</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-500">{session.user?.email}</span>
-              <img
-                src={
-                  session.user?.image || "https://www.gravatar.com/avatar/?d=mp"
-                }
-                alt="Profile"
-                className="h-8 w-8 rounded-full"
-              />
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+          <AccountSelector
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onSelectAccount={setSelectedAccountId}
+            onCreateAccount={handleCreateAccount}
+          />
         </div>
-      </nav>
 
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-gray-600">
-              Welcome back, {session.user?.name || session.user?.email}
+        {selectedAccount ? (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DashboardCard title="Account Overview">
+                <AccountOverview account={selectedAccount} />
+              </DashboardCard>
+              <DashboardCard title="Transaction History">
+                <TransactionHistory
+                  transactions={selectedAccount.transactions}
+                  currentBalance={selectedAccount.balance}
+                />
+              </DashboardCard>
             </div>
-            <div className="text-sm text-gray-500">
-              Last login: {new Date().toLocaleDateString()}
-            </div>
-          </div>
 
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-              <h1 className="text-4xl font-bold text-gray-900">
-                {selectedAccount.name}
-              </h1>
-              <AccountSelector
-                accounts={accounts}
-                selectedAccountId={selectedAccountId}
-                onAccountSelect={setSelectedAccountId}
-                onCreateAccount={handleCreateAccount}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {/* Account Overview Section */}
-            <DashboardCard
-              title={`Account Details (${selectedAccount.accountNumber})`}
-              className="mb-6"
-            >
-              <AccountOverview
-                balance={selectedAccount.balance}
-                interestRate={selectedAccount.interestRate}
-                lastTransaction={selectedAccount.transactions[0]}
-              />
-            </DashboardCard>
-
-            {/* New Transaction Form */}
-            <DashboardCard title="New Transaction" className="mb-6">
-              <NewTransactionForm onSubmit={handleNewTransaction} />
-            </DashboardCard>
-
-            {/* Growth Projection and Interest Rate Simulator Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Current Growth Projection */}
-              <DashboardCard title="Current Growth Projection">
-                <div className="p-4">
-                  <p className="text-sm text-gray-600 mb-4">
-                    This chart shows how your current balance of{" "}
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    }).format(selectedAccount.balance)}{" "}
-                    would grow over the next 5 years at your current interest
-                    rate of {selectedAccount.interestRate}%.
-                  </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DashboardCard title="Interest Projection">
+                <div className="h-[300px]">
                   <CompoundInterestChart
-                    initialBalance={selectedAccount.balance}
+                    balance={selectedAccount.balance}
                     interestRate={selectedAccount.interestRate}
-                    years={5}
                   />
                 </div>
               </DashboardCard>
-
-              {/* Interest Rate Simulator */}
               <DashboardCard title="Interest Rate Simulator">
-                <div className="p-4">
-                  <p className="text-sm text-gray-600 mb-4">
-                    Drag the slider to simulate how different interest rates
-                    would affect your money's growth over time. The green line
-                    marks your current interest rate of{" "}
-                    {selectedAccount.interestRate}%.
-                  </p>
+                <div className="h-[300px]">
                   <InterestRateSimulator
-                    initialBalance={selectedAccount.balance}
-                    currentInterestRate={selectedAccount.interestRate}
+                    balance={selectedAccount.balance}
+                    currentRate={selectedAccount.interestRate}
+                    onRateChange={(newRate) => {
+                      // In a real application, you would update the interest rate
+                      // through an API call here
+                      console.log(`New interest rate: ${newRate}%`);
+                    }}
                   />
                 </div>
               </DashboardCard>
             </div>
 
-            {/* Transaction History */}
-            <DashboardCard title="Recent Transactions">
-              <TransactionHistory transactions={selectedAccount.transactions} />
+            <DashboardCard title="New Transaction">
+              <NewTransactionForm
+                onSubmit={handleNewTransaction}
+                isLoading={isLoading}
+              />
             </DashboardCard>
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="bg-white rounded-lg shadow-md p-8">
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No Account Selected
+              </h3>
+              <p className="text-gray-500">
+                Please select an account from the dropdown above to view its
+                details.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

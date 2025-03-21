@@ -1,53 +1,103 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
-import CognitoProvider from 'next-auth/providers/cognito';
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CognitoProvider from "next-auth/providers/cognito";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CognitoProvider({
-      clientId: process.env.COGNITO_CLIENT_ID as string,
-      clientSecret: process.env.COGNITO_CLIENT_SECRET as string,
+      clientId: process.env.COGNITO_CLIENT_ID!,
+      clientSecret: process.env.COGNITO_CLIENT_SECRET!,
       issuer: process.env.COGNITO_ISSUER,
       authorization: {
-        url: `${process.env.COGNITO_DOMAIN}/oauth2/authorize`,
         params: {
-          scope: 'openid profile email',
-          response_type: 'code',
-          grant_type: 'authorization_code'
-        }
+          scope: "openid email profile",
+          response_type: "code",
+        },
       },
-      token: {
-        url: `${process.env.COGNITO_DOMAIN}/oauth2/token`
-      },
-      userinfo: {
-        url: `${process.env.COGNITO_DOMAIN}/oauth2/userInfo`
-      }
     }),
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
-  },
   callbacks: {
-    async jwt({ token, account, profile }) {
+    async signIn({ user, account, profile }) {
       if (account && profile) {
-        token.accessToken = account.access_token;
-        token.id = profile.sub;
+        console.log("SignIn Callback:", {
+          userId: profile.sub,
+          email: profile.email,
+          hasIdToken: !!account.id_token
+        });
+        return true;
       }
+      return false;
+    },
+    async jwt({ token, account, profile, user }) {
+      // Initial sign in
+      if (account && profile) {
+        console.log("JWT Callback - Initial sign in:", {
+          sub: profile.sub,
+          email: profile.email,
+          hasIdToken: !!account.id_token
+        });
+        
+        return {
+          ...token,
+          id: profile.sub,
+          sub: profile.sub,
+          idToken: account.id_token,
+          accessToken: account.access_token,
+          email: profile.email,
+        };
+      }
+
+      // Return previous token if it exists
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.accessToken = token.accessToken;
-      }
-      return session;
+      console.log("Session Callback - Token data:", {
+        sub: token.sub,
+        id: token.id,
+        hasIdToken: !!token.idToken,
+        tokenKeys: Object.keys(token)
+      });
+
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.sub || token.id,
+        },
+        idToken: token.idToken,
+        accessToken: token.accessToken,
+      };
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: '/auth/signin',
+    error: '/auth/error',
   },
-  debug: process.env.NODE_ENV === 'development',
+  events: {
+    async signIn(message) {
+      console.log("SignIn Event:", message);
+    },
+    async session(message) {
+      console.log("Session Event:", message);
+    },
+  },
+  debug: process.env.NODE_ENV === "development",
+  session: {
+    strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours
+  },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" 
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);

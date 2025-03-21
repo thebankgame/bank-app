@@ -1,57 +1,52 @@
 "use client";
 
-import { LastTransaction } from "@/types/bank";
+import type { BankAccount } from "../../types/bank";
 
 interface AccountOverviewProps {
-  balance: number;
-  interestRate: number;
-  lastTransaction?: LastTransaction;
+  account: BankAccount;
 }
 
-export default function AccountOverview({
-  balance,
-  interestRate,
-  lastTransaction,
-}: AccountOverviewProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
-
+export default function AccountOverview({ account }: AccountOverviewProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
-        <h3 className="text-sm font-medium opacity-80">Current Balance</h3>
-        <p className="text-2xl font-semibold mt-2">{formatCurrency(balance)}</p>
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-medium text-gray-500">Account Number</h3>
+        <p className="mt-1 text-lg font-semibold">{account.accountNumber}</p>
       </div>
-
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
-        <h3 className="text-sm font-medium opacity-80 flex items-center">
-          Last Transaction
-          {lastTransaction && (
-            <span className="ml-1">
-              ({new Date(lastTransaction.date).toLocaleDateString()})
-            </span>
-          )}
-        </h3>
-        <p className="text-2xl font-semibold mt-2">
-          {lastTransaction ? (
-            <>
-              {lastTransaction.type === "deposit" ? "+" : "-"}{" "}
-              {formatCurrency(lastTransaction.amount)}
-            </>
-          ) : (
-            <>+ {formatCurrency(0)}</>
-          )}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500">Current Balance</h3>
+        <p className="mt-1 text-2xl font-bold text-blue-600">
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+          }).format(account.balance)}
         </p>
       </div>
-
-      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-        <h3 className="text-sm font-medium opacity-80">Interest Rate</h3>
-        <p className="text-2xl font-semibold mt-2">{interestRate}%</p>
+      <div>
+        <h3 className="text-sm font-medium text-gray-500">Interest Rate</h3>
+        <p className="mt-1 text-lg font-semibold">{account.interestRate}%</p>
       </div>
+      {account.transactions.length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium text-gray-500">
+            Last Transaction
+          </h3>
+          <p className="mt-1 text-lg">
+            {new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+              signDisplay: "always",
+            }).format(
+              account.transactions[0].type === "withdrawal"
+                ? -account.transactions[0].amount
+                : account.transactions[0].amount
+            )}
+          </p>
+          <p className="text-sm text-gray-500">
+            {new Date(account.transactions[0].timestamp).toLocaleDateString()}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

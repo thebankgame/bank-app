@@ -8,10 +8,12 @@ interface NewTransactionFormProps {
     amount: number;
     type: "deposit" | "withdrawal";
   }) => void;
+  isLoading?: boolean;
 }
 
 export default function NewTransactionForm({
   onSubmit,
+  isLoading = false,
 }: NewTransactionFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -51,6 +53,7 @@ export default function NewTransactionForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
             placeholder="Enter transaction description"
             required
+            disabled={isLoading}
           />
         </div>
 
@@ -75,6 +78,7 @@ export default function NewTransactionForm({
               min="0"
               step="0.01"
               required
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -93,6 +97,7 @@ export default function NewTransactionForm({
               setType(e.target.value as "deposit" | "withdrawal")
             }
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={isLoading}
           >
             <option value="deposit">Deposit</option>
             <option value="withdrawal">Withdrawal</option>
@@ -100,12 +105,15 @@ export default function NewTransactionForm({
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            isLoading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={isLoading}
         >
-          Add Transaction
+          {isLoading ? "Processing..." : "Add Transaction"}
         </button>
       </div>
     </form>

@@ -1,26 +1,27 @@
-export type Transaction = {
-  id: string;
-  date: string; // ISO 8601 UTC timestamp
+export interface Transaction {
+  transactionId: string;
   description: string;
   amount: number;
-  type: "deposit" | "withdrawal";
-  accumulatedInterest: number;
-  runningBalance?: number; // Make runningBalance optional
-};
+  type: 'deposit' | 'withdrawal';
+  timestamp: string;
+  runningBalance: number;
+}
 
-export type BankAccount = {
-  id: string;
+export interface BankAccount {
+  userId: string;
+  accountId: string;
   name: string;
   accountNumber: string;
   balance: number;
   interestRate: number;
   transactions: Transaction[];
-};
+  createdAt: string;
+}
 
-export type UserBankData = {
+export interface UserBankData {
   accounts: BankAccount[];
   selectedAccountId: string;
-};
+}
 
 export type LastTransaction = {
   amount: number;

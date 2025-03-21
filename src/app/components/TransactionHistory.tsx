@@ -1,9 +1,10 @@
 "use client";
 
-import { Transaction } from "@/types/bank";
+import type { Transaction } from "../../types/bank";
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
+  currentBalance: number;
 }
 
 type TransactionWithRunningBalance = Transaction & {
@@ -13,11 +14,13 @@ type TransactionWithRunningBalance = Transaction & {
 
 export default function TransactionHistory({
   transactions,
+  currentBalance,
 }: TransactionHistoryProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
+      signDisplay: "always",
     }).format(amount);
   };
 
@@ -41,49 +44,57 @@ export default function TransactionHistory({
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Date & Time
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Date
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Description
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Amount
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Interest
-            </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Balance
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {transactions.map((transaction) => {
-            const txn = transaction as TransactionWithRunningBalance;
+            const amount =
+              transaction.type === "withdrawal"
+                ? -transaction.amount
+                : transaction.amount;
+            const balance = transaction.runningBalance;
+
             return (
-              <tr key={txn.id} className="hover:bg-gray-50">
+              <tr key={transaction.transactionId}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDateTime(txn.date)}
+                  {new Date(transaction.timestamp).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {txn.description}
+                  {transaction.description}
                 </td>
-                <td
-                  className={`px-6 py-4 whitespace-nowrap text-sm text-right ${
-                    txn.type === "deposit" ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {txn.type === "deposit" ? "+" : "-"}{" "}
-                  {formatCurrency(Math.abs(txn.amount))}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-blue-600">
-                  + {formatCurrency(txn.accumulatedInterest)}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
+                  <span
+                    className={amount >= 0 ? "text-green-600" : "text-red-600"}
+                  >
+                    {formatCurrency(amount)}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                  {txn.runningBalance !== undefined
-                    ? formatCurrency(txn.runningBalance)
-                    : "Unavailable"}
+                  {formatCurrency(balance)}
                 </td>
               </tr>
             );
