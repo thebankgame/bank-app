@@ -4,6 +4,7 @@ import { authOptions } from "../api/auth/[...nextauth]/route";
 import DashboardContent from "./DashboardContent";
 import { BankAccount, UserBankData } from "@/types/bank";
 import { getAccounts } from "../api/services/dynamoDBService";
+import SignOutButton from "../components/SignOutButton";
 
 function generateAccountNumber(): string {
   return Array.from({ length: 4 }, () =>
@@ -54,22 +55,14 @@ export default async function DashboardPage() {
     )
   );
 
-  if (!session) {
-    redirect("/api/auth/signin");
-  }
-
-  if (!session.user?.id || !session.idToken) {
-    console.error("Invalid session state:", {
-      hasUser: !!session?.user,
-      userId: session?.user?.id,
-      hasIdToken: !!session?.idToken,
-    });
-    redirect("/api/auth/signin");
+  if (!session?.user?.id) {
+    console.error("No user ID in session");
+    redirect("/auth/signin");
   }
 
   try {
     // Get initial data for the dashboard
-    const accounts = await getAccounts(session.user.id, session.idToken);
+    const accounts = await getAccounts();
 
     const initialData: UserBankData = {
       accounts,
@@ -80,9 +73,17 @@ export default async function DashboardPage() {
   } catch (error) {
     console.error("Error fetching initial dashboard data:", error);
 
-    // If token is expired or invalid, redirect to sign in
+    // If token is expired or invalid, show sign out button
     if (error instanceof Error && error.name === "TokenExpiredError") {
-      redirect("/api/auth/signin");
+      return (
+        <div className="p-4">
+          <h1 className="text-xl font-bold mb-4">Session Expired</h1>
+          <p className="text-red-600 mb-4">
+            Your session has expired. Please sign in again.
+          </p>
+          <SignOutButton />
+        </div>
+      );
     }
 
     // For other errors, show error UI

@@ -21,7 +21,8 @@ export const authOptions: NextAuthOptions = {
         console.log("SignIn Callback:", {
           userId: profile.sub,
           email: profile.email,
-          hasIdToken: !!account.id_token
+          hasIdToken: !!account.id_token,
+          hasAccessToken: !!account.access_token
         });
         return true;
       }
@@ -33,7 +34,8 @@ export const authOptions: NextAuthOptions = {
         console.log("JWT Callback - Initial sign in:", {
           sub: profile.sub,
           email: profile.email,
-          hasIdToken: !!account.id_token
+          hasIdToken: !!account.id_token,
+          hasAccessToken: !!account.access_token
         });
         
         return {
@@ -54,9 +56,11 @@ export const authOptions: NextAuthOptions = {
         sub: token.sub,
         id: token.id,
         hasIdToken: !!token.idToken,
+        hasAccessToken: !!token.accessToken,
         tokenKeys: Object.keys(token)
       });
 
+      // Always return a valid session with the user ID
       return {
         ...session,
         user: {

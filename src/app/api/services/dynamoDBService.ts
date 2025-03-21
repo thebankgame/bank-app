@@ -5,26 +5,31 @@ import {
   PutCommand,
   ScanCommand,
   UpdateCommand,
+  QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
-import { CognitoIdentityClient, GetIdCommand } from "@aws-sdk/client-cognito-identity";
+import { CognitoIdentityClient, GetIdCommand, GetCredentialsForIdentityCommand } from "@aws-sdk/client-cognito-identity";
 import { BankAccount, Transaction } from "@/types/bank";
 import { v4 as uuidv4 } from "uuid";
-import jwt from 'jsonwebtoken';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-class TokenExpiredError extends Error {
+export class TokenExpiredError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'TokenExpiredError';
+    this.name = "TokenExpiredError";
   }
 }
 
-function createDynamoDBClient(idToken: string) {
-  // Extract the Cognito Identity ID from the JWT token
-  const decodedToken = jwt.decode(idToken) as { sub: string; exp: number };
-  if (!decodedToken?.sub) {
-    throw new Error("Invalid ID token");
+export async function createDynamoDBClient() {
+  const session = await getServerSession(authOptions);
+  if (!session?.accessToken) {
+    throw new Error("No access token found");
   }
+
+  // Decode the access token
+  const decodedToken = JSON.parse(
+    Buffer.from(session.accessToken.split(".")[1], "base64").toString()
+  );
 
   // Check if token is expired
   if (decodedToken.exp && decodedToken.exp * 1000 < Date.now()) {
@@ -32,51 +37,60 @@ function createDynamoDBClient(idToken: string) {
   }
 
   const cognitoIdentityClient = new CognitoIdentityClient({ region: process.env.AWS_REGION });
-  const credentials = fromCognitoIdentityPool({
-    client: cognitoIdentityClient,
-    identityPoolId: process.env.COGNITO_IDENTITY_POOL_ID!,
-    logins: {
-      [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID!}`]: idToken,
+  const getIdCommand = new GetIdCommand({
+    IdentityPoolId: process.env.COGNITO_IDENTITY_POOL_ID,
+    Logins: {
+      [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]: session.idToken as string,
     },
   });
 
-  // Get the Cognito Identity ID
-  const getIdentityId = async () => {
-    const command = new GetIdCommand({
-      IdentityPoolId: process.env.COGNITO_IDENTITY_POOL_ID!,
-      Logins: {
-        [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID!}`]: idToken,
-      },
-    });
-    const response = await cognitoIdentityClient.send(command);
-    return response.IdentityId;
-  };
+  const { IdentityId } = await cognitoIdentityClient.send(getIdCommand);
+  if (!IdentityId) {
+    throw new Error("Failed to get Cognito Identity ID");
+  }
+
+  // Get temporary credentials from Cognito Identity
+  const getCredentialsCommand = new GetCredentialsForIdentityCommand({
+    IdentityId,
+    Logins: {
+      [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]: session.idToken as string,
+    },
+  });
+
+  const { Credentials } = await cognitoIdentityClient.send(getCredentialsCommand);
+  if (!Credentials) {
+    throw new Error("Failed to get temporary credentials");
+  }
 
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
-    credentials,
+    credentials: {
+      accessKeyId: Credentials.AccessKeyId,
+      secretAccessKey: Credentials.SecretKey,
+      sessionToken: Credentials.SessionToken,
+    },
   });
 
   return {
     docClient: DynamoDBDocumentClient.from(client),
-    getIdentityId,
+    cognitoIdentityId: IdentityId,
   };
 }
 
-export async function getAccounts(userId: string, idToken: string): Promise<BankAccount[]> {
+export async function getAccounts(): Promise<BankAccount[]> {
   try {
-    const { docClient, getIdentityId } = createDynamoDBClient(idToken);
-    const cognitoIdentityId = await getIdentityId();
+    const { docClient, cognitoIdentityId } = await createDynamoDBClient();
 
-    const command = new ScanCommand({
+    const command = new QueryCommand({
       TableName: "BankAccounts",
+      KeyConditionExpression: "userId = :userId",
+      ExpressionAttributeValues: {
+        ":userId": cognitoIdentityId,
+      },
     });
 
     const response = await docClient.send(command);
-    const allAccounts = response.Items as BankAccount[];
-    
-    // Filter accounts in memory to only return those belonging to the current user
-    return allAccounts.filter(account => account.userId === cognitoIdentityId);
+    return response.Items as BankAccount[];
   } catch (error) {
     if (error instanceof TokenExpiredError) {
       throw error;
@@ -86,10 +100,9 @@ export async function getAccounts(userId: string, idToken: string): Promise<Bank
   }
 }
 
-export async function getAccount(userId: string, accountId: string, idToken: string): Promise<BankAccount | null> {
+export async function getAccount(accountId: string): Promise<BankAccount | null> {
   try {
-    const { docClient, getIdentityId } = createDynamoDBClient(idToken);
-    const cognitoIdentityId = await getIdentityId();
+    const { docClient, cognitoIdentityId } = await createDynamoDBClient();
 
     const command = new GetCommand({
       TableName: "BankAccounts",
@@ -110,10 +123,9 @@ export async function getAccount(userId: string, accountId: string, idToken: str
   }
 }
 
-export async function createAccount(userId: string, name: string, idToken: string): Promise<BankAccount> {
+export async function createAccount(name: string): Promise<BankAccount> {
   try {
-    const { docClient, getIdentityId } = createDynamoDBClient(idToken);
-    const cognitoIdentityId = await getIdentityId();
+    const { docClient, cognitoIdentityId } = await createDynamoDBClient();
     
     const accountId = uuidv4();
     const now = new Date().toISOString();
@@ -146,16 +158,13 @@ export async function createAccount(userId: string, name: string, idToken: strin
 }
 
 export async function addTransaction(
-  userId: string,
   accountId: string,
-  transaction: Omit<Transaction, "transactionId" | "timestamp" | "runningBalance">,
-  idToken: string
+  transaction: Omit<Transaction, "transactionId" | "timestamp" | "runningBalance">
 ): Promise<BankAccount> {
   try {
-    const { docClient, getIdentityId } = createDynamoDBClient(idToken);
-    const cognitoIdentityId = await getIdentityId();
+    const { docClient, cognitoIdentityId } = await createDynamoDBClient();
 
-    const account = await getAccount(cognitoIdentityId, accountId, idToken);
+    const account = await getAccount(accountId);
     if (!account) {
       throw new Error("Account not found");
     }
