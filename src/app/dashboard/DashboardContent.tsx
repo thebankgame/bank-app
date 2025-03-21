@@ -174,21 +174,114 @@ export default function DashboardContent({
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
-          <AccountSelector
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            onSelectAccount={setSelectedAccountId}
-            onCreateAccount={handleCreateAccount}
-          />
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Welcome to Your Bank
+          </h1>
+          <div className="text-sm text-gray-600">
+            {session.user?.name || session.user?.email}
+          </div>
         </div>
+        <div className="flex items-center gap-4 mb-6">
+          <select
+            value={selectedAccountId}
+            onChange={(e) => setSelectedAccountId(e.target.value)}
+            className="text-lg text-gray-700 bg-transparent border-none focus:ring-0 p-0"
+          >
+            {accounts.map((account) => (
+              <option key={account.accountId} value={account.accountId}>
+                {account.name} • {account.accountNumber}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => {
+              const name = prompt("Enter account name:");
+              if (name) handleCreateAccount(name);
+            }}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            + New Account
+          </button>
+        </div>
+
+        {selectedAccount && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="bg-green-100 rounded-lg shadow-md p-4">
+                <h3 className="text-sm font-medium text-green-800 mb-1">
+                  Current Balance
+                </h3>
+                <p className="text-2xl font-bold text-green-900">
+                  ${selectedAccount.balance.toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-purple-100 rounded-lg shadow-md p-4">
+                <h3 className="text-sm font-medium text-purple-800 mb-1">
+                  Interest Rate
+                </h3>
+                <p className="text-2xl font-bold text-purple-900">
+                  {selectedAccount.interestRate}%
+                </p>
+              </div>
+              <div className="bg-orange-100 rounded-lg shadow-md p-4">
+                <h3 className="text-sm font-medium text-orange-800 mb-1">
+                  Last Transaction
+                  {selectedAccount.transactions.length > 0 && (
+                    <span className="font-normal text-orange-700">
+                      {" "}
+                      (
+                      {new Date(
+                        selectedAccount.transactions[
+                          selectedAccount.transactions.length - 1
+                        ].timestamp
+                      ).toLocaleDateString()}
+                      )
+                    </span>
+                  )}
+                </h3>
+                <p className="text-2xl font-bold text-orange-900">
+                  {selectedAccount.transactions.length > 0 ? (
+                    <span
+                      className={
+                        selectedAccount.transactions[
+                          selectedAccount.transactions.length - 1
+                        ].type === "deposit"
+                          ? "text-green-700"
+                          : "text-red-700"
+                      }
+                    >
+                      {selectedAccount.transactions[
+                        selectedAccount.transactions.length - 1
+                      ].type === "deposit"
+                        ? "+"
+                        : "-"}
+                      $
+                      {selectedAccount.transactions[
+                        selectedAccount.transactions.length - 1
+                      ].amount.toLocaleString()}
+                    </span>
+                  ) : (
+                    "No transactions"
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <DashboardCard title="New Transaction">
+                <NewTransactionForm
+                  onSubmit={handleNewTransaction}
+                  isLoading={isLoading}
+                />
+              </DashboardCard>
+            </div>
+          </>
+        )}
 
         {selectedAccount ? (
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DashboardCard title="Account Overview">
-                <AccountOverview account={selectedAccount} />
-              </DashboardCard>
               <DashboardCard title="Transaction History">
                 <TransactionHistory
                   transactions={selectedAccount.transactions}
@@ -213,13 +306,6 @@ export default function DashboardContent({
                 />
               </DashboardCard>
             </div>
-
-            <DashboardCard title="New Transaction">
-              <NewTransactionForm
-                onSubmit={handleNewTransaction}
-                isLoading={isLoading}
-              />
-            </DashboardCard>
           </div>
         ) : (
           <div className="text-center py-12">
