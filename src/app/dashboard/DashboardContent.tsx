@@ -213,7 +213,7 @@ export default function DashboardContent({
                   Current Balance
                 </h3>
                 <p className="text-2xl font-bold text-green-900">
-                  ${selectedAccount.balance.toLocaleString()}
+                  ${selectedAccount.balance.toFixed(2)}
                 </p>
               </div>
               <div className="bg-purple-100 rounded-lg shadow-md p-4">
@@ -259,7 +259,7 @@ export default function DashboardContent({
                       $
                       {selectedAccount.transactions[
                         selectedAccount.transactions.length - 1
-                      ].amount.toLocaleString()}
+                      ].amount.toFixed(2)}
                     </span>
                   ) : (
                     "No transactions"
@@ -281,14 +281,12 @@ export default function DashboardContent({
 
         {selectedAccount ? (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DashboardCard title="Transaction History">
-                <TransactionHistory
-                  transactions={selectedAccount.transactions}
-                  currentBalance={selectedAccount.balance}
-                />
-              </DashboardCard>
-            </div>
+            <DashboardCard title="Transaction History">
+              <TransactionHistory
+                transactions={selectedAccount.transactions}
+                currentBalance={selectedAccount.balance}
+              />
+            </DashboardCard>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <DashboardCard title="Interest Projection">

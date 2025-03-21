@@ -43,58 +43,87 @@ export default function TransactionHistory({
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
+          <tr className="bg-gray-50">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Date
             </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Description
             </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Amount
             </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Interest
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Balance
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {transactions.map((transaction) => {
-            const amount =
-              transaction.type === "withdrawal"
-                ? -transaction.amount
-                : transaction.amount;
-            const balance = transaction.runningBalance;
+          {transactions.map((transaction, index) => {
+            const runningBalance = transactions
+              .slice(0, index + 1)
+              .reduce((acc, t) => {
+                const amount = t.type === "deposit" ? t.amount : -t.amount;
+                return acc + amount;
+              }, 0);
+
+            const accumulatedInterest = transactions
+              .slice(0, index + 1)
+              .reduce((acc, t, i) => {
+                if (i === 0) return 0; // No interest on first transaction
+                const prevTransaction = transactions[i - 1];
+                const daysBetweenTransactions =
+                  (new Date(t.timestamp).getTime() -
+                    new Date(prevTransaction.timestamp).getTime()) /
+                  (1000 * 60 * 60 * 24);
+                const prevBalance = transactions
+                  .slice(0, i)
+                  .reduce((acc, t) => {
+                    const amount = t.type === "deposit" ? t.amount : -t.amount;
+                    return acc + amount;
+                  }, 0);
+                return (
+                  acc + prevBalance * (0.025 / 365) * daysBetweenTransactions
+                );
+              }, 0);
 
             return (
               <tr key={transaction.transactionId}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(transaction.timestamp).toLocaleDateString()}
+                  {new Date(transaction.timestamp).toLocaleString(undefined, {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {transaction.description}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span
-                    className={amount >= 0 ? "text-green-600" : "text-red-600"}
+                    className={
+                      transaction.type === "deposit"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
                   >
-                    {formatCurrency(amount)}
+                    {transaction.type === "deposit" ? "+" : "-"}$
+                    {transaction.amount.toFixed(2)}
                   </span>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
+                  {accumulatedInterest > 0
+                    ? `+$${accumulatedInterest.toFixed(2)}`
+                    : "$0.00"}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                  {formatCurrency(balance)}
+                  ${(runningBalance + accumulatedInterest).toFixed(2)}
                 </td>
               </tr>
             );

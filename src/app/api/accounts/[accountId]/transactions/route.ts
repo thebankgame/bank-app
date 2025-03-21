@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { addTransaction, getAccount } from "../../../services/dynamoDBService";
 
 export async function POST(
   request: Request,
-  { params }: { params: { accountId: string } }
+  context: { params: { accountId: string } }
 ) {
-  const accountId = params.accountId;
+  const { accountId } = await context.params;
   if (!accountId) {
     return new NextResponse("Account ID is required", { status: 400 });
   }
@@ -18,8 +18,8 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { description, amount, type } = await request.json();
-    if (!description || amount === undefined || !type) {
+    const { type, amount, description } = await request.json();
+    if (!type || amount === undefined || !description) {
       return new NextResponse("Missing required fields", { status: 400 });
     }
     
@@ -29,7 +29,18 @@ export async function POST(
       return new NextResponse("Account not found", { status: 404 });
     }
 
-    const updatedAccount = await addTransaction(
+    // Calculate accumulated interest since last transaction
+    const lastTransaction = account.transactions[account.transactions.length - 1];
+    const lastTransactionTime = lastTransaction ? new Date(lastTransaction.timestamp) : new Date(account.createdAt);
+    const currentTime = new Date();
+    const daysSinceLastTransaction = (currentTime.getTime() - lastTransactionTime.getTime()) / (1000 * 60 * 60 * 24);
+    const accumulatedInterest = account.balance * (0.025 / 365) * daysSinceLastTransaction;
+
+    // Add interest to the balance before applying the new transaction
+    const balanceWithInterest = account.balance + accumulatedInterest;
+
+    // Create the new transaction with the updated balance
+    const transaction = await addTransaction(
       session.user.id,
       accountId,
       {
@@ -40,9 +51,9 @@ export async function POST(
       session.idToken
     );
 
-    return NextResponse.json(updatedAccount);
+    return NextResponse.json(transaction);
   } catch (error) {
-    console.error("Error adding transaction:", error);
+    console.error("Error creating transaction:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 } 
