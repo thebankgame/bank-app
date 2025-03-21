@@ -5,9 +5,11 @@ import { addTransaction, getAccount } from "../../../services/dynamoDBService";
 
 export async function POST(
   request: Request,
-  context: { params: { accountId: string } }
+  context: any
 ) {
-  const { accountId } = context.params;
+  // console.log('Context params:', context.params);
+  const params = await context.params;
+  const accountId = params.accountId;
   if (!accountId) {
     return new NextResponse("Account ID is required", { status: 400 });
   }
