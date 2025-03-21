@@ -33,10 +33,14 @@ export default function AccountSelector({
         <select
           value={selectedAccountId}
           onChange={(e) => onSelectAccount(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
         >
           {accounts.map((account) => (
-            <option key={account.accountId} value={account.accountId}>
+            <option
+              key={account.accountId}
+              value={account.accountId}
+              className="text-gray-900 bg-white"
+            >
               {account.name} ({account.accountNumber})
             </option>
           ))}
@@ -50,7 +54,7 @@ export default function AccountSelector({
             value={newAccountName}
             onChange={(e) => setNewAccountName(e.target.value)}
             placeholder="Account Name"
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
           />
           <button
             onClick={handleCreateAccount}
