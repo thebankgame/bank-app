@@ -3,7 +3,6 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
-  ScanCommand,
   UpdateCommand,
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
@@ -16,6 +15,7 @@ import { BankAccount, Transaction } from "@/types/bank";
 import { v4 as uuidv4 } from "uuid";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { time } from "console";
 
 export class TokenExpiredError extends Error {
   constructor(message: string) {
@@ -125,7 +125,20 @@ export async function getAccount(
     });
 
     const response = await docClient.send(command);
-    return response.Item as BankAccount | null;
+
+    const account = response.Item as BankAccount | null;
+
+    if (account) {
+      // Precompute formattedTimestamp for each transaction
+      account.transactions = account.transactions.map((transaction) => ({
+        ...transaction,
+        formattedTimestamp: new Date(transaction.timestamp).toLocaleDateString(
+          "en-US"
+        ),
+      }));
+    }
+
+    return account;
   } catch (error) {
     if (error instanceof TokenExpiredError) {
       throw error;
@@ -174,7 +187,8 @@ export async function addTransaction(
   transaction: Omit<
     Transaction,
     "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
-  >
+  >,
+  timestamp: string
 ): Promise<BankAccount> {
   try {
     const { docClient, cognitoIdentityId } = await createDynamoDBClient();
@@ -184,7 +198,7 @@ export async function addTransaction(
       throw new Error("Account not found");
     }
 
-    const now = new Date().toISOString();
+    const now = timestamp;
 
     // Calculate accumulated interest up to this point
     const sortedTransactions = [...account.transactions].sort(
@@ -194,12 +208,16 @@ export async function addTransaction(
 
     let totalAccumulatedInterest = 0;
     let newRunningBalance = 0;
+    let lastBalance = 0;
+
+    console.log("sortedTransactions", sortedTransactions);
+    console.log("sortedTransactions.length", sortedTransactions.length);
 
     if (sortedTransactions.length > 0) {
       // Calculate interest since last transaction
       const lastTransaction = sortedTransactions[0];
-      const lastBalance = sortedTransactions[0].runningBalance || 0;
       const lastTransactionDate = new Date(lastTransaction?.timestamp || now);
+      lastBalance = sortedTransactions[0].runningBalance || 0;
 
       // Calculate days between last transaction and now
       const daysSinceLastTransaction = Math.floor(
@@ -210,15 +228,13 @@ export async function addTransaction(
       // Calculate interest since last transaction
       totalAccumulatedInterest =
         lastBalance * (0.025 / 365) * daysSinceLastTransaction;
-
-      // Calculate the new running balance including the new transaction
-      const newTransactionAmount =
-        transaction.type === "deposit"
-          ? transaction.amount
-          : -transaction.amount;
-      newRunningBalance =
-        lastBalance + newTransactionAmount + totalAccumulatedInterest;
     }
+
+    // Calculate the new running balance including the new transaction
+    const newTransactionAmount =
+      transaction.type === "deposit" ? transaction.amount : -transaction.amount;
+    newRunningBalance =
+      lastBalance + newTransactionAmount + totalAccumulatedInterest;
 
     const newTransaction: Transaction = {
       transactionId: uuidv4(),

@@ -10,6 +10,8 @@ export function calculateInterestSinceLastTransaction(
 
   // Get the last transaction and its running balance
   const lastTransaction = sortedTransactions[0];
+
+  console.log("lastTransaction", lastTransaction);
   if (!lastTransaction) {
     return {
       interestSinceLastTransaction: 0,
@@ -33,6 +35,12 @@ export function calculateInterestSinceLastTransaction(
 
   // New balance is last transaction's running balance plus any new interest
   const newBalance = lastTransaction.runningBalance + interestSinceLastTransaction;
+
+  console.log("newBalance", newBalance);
+  console.log("interestSinceLastTransaction", interestSinceLastTransaction);
+  console.log("daysSinceLastTransaction", daysSinceLastTransaction);
+  console.log("lastTransactionDate", lastTransactionDate);
+  console.log("today", today);
 
   return {
     interestSinceLastTransaction,

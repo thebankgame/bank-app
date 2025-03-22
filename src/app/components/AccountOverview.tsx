@@ -49,8 +49,9 @@ export default function AccountOverview({ account }: AccountOverviewProps) {
                 : account.transactions[0].amount
             )}
           </p>
+          {/* Use precomputed formattedTimestamp */}
           <p className="text-sm text-gray-500">
-            {new Date(account.transactions[0].timestamp).toLocaleDateString()}
+            {account.transactions[0].formattedTimestamp}
           </p>
         </div>
       )}
