@@ -72,8 +72,17 @@ export default function InterestRateSimulator({
   };
 
   const projectedBalance = balance * Math.pow(1 + interestRate / 100, 5);
+  // Using toLocaleString() method
+const formattedProjectedBalance: string = projectedBalance.toLocaleString(undefined, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
   const totalInterest = projectedBalance - balance;
-
+  const formattedTotalInterest: string = totalInterest.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  
   return (
     <div className="space-y-4">
       <div className="space-y-3">
@@ -84,7 +93,7 @@ export default function InterestRateSimulator({
           <input
             type="range"
             min="0"
-            max="10"
+            max="100"
             step="0.1"
             value={interestRate}
             onChange={handleRateChange}
@@ -106,7 +115,7 @@ export default function InterestRateSimulator({
               Projected Balance (5 years)
             </h3>
             <p className="mt-1 text-xl font-semibold text-gray-900">
-              ${projectedBalance.toLocaleString()}
+              ${formattedProjectedBalance}
             </p>
           </div>
         </div>
@@ -116,7 +125,7 @@ export default function InterestRateSimulator({
             Total Interest Earned
           </h3>
           <p className="mt-1 text-xl font-semibold text-green-600">
-            ${totalInterest.toLocaleString()}
+            ${formattedTotalInterest}
           </p>
         </div>
       </div>
