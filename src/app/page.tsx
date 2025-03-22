@@ -53,9 +53,6 @@ export default async function Home() {
             ))}
         </div>
       </div>
-          {/* <Link href="/auth/signin" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded">
-            Sign In
-          </Link> */}
         </div>
       </div>
     </main>

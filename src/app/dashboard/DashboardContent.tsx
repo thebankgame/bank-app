@@ -301,12 +301,6 @@ export default function DashboardContent({
           <div className="text-sm text-gray-600">
             {session.user?.name || session.user?.email}&nbsp;|&nbsp;
             <SignOutButton />
-            {/* <button
-              onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Sign Out
-            </button> */}
           </div>
         </div>
         <div className="flex items-center gap-4 mb-6">
@@ -355,7 +349,7 @@ export default function DashboardContent({
                   Interest Rate
                 </h3>
                 <p className="text-2xl font-bold text-purple-900">
-                  {selectedAccount.interestRate}%
+                  {selectedAccount.interestRate.toFixed(1)}%
                 </p>
                 {isRateChanging ? (
                   <div className="flex gap-2 items-center">
@@ -446,7 +440,7 @@ export default function DashboardContent({
           </>
         )}
 
-        {selectedAccount && currentRate ? (
+        {selectedAccount ? (
           <div className="space-y-8">
             <DashboardCard title="Transaction History">
               <TransactionHistory transactions={selectedAccount.transactions} />

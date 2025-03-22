@@ -72,6 +72,14 @@ export async function createDynamoDBClient() {
     throw new Error("Failed to get temporary credentials");
   }
 
+  if (
+    !Credentials.AccessKeyId ||
+    !Credentials.SecretKey ||
+    !Credentials.SessionToken
+  ) {
+    throw new Error("Incomplete AWS credentials");
+  }
+
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
     credentials: {
