@@ -57,7 +57,7 @@ export default async function DashboardPage() {
 
   if (!session?.user?.id) {
     console.error("No user ID in session");
-    redirect("/auth/signin");
+    redirect("/");
   }
 
   try {

@@ -79,7 +79,7 @@ export default function DashboardContent({
 
       if (response.status === 401) {
         // Token expired, redirect to sign in
-        router.push("/api/auth/signin");
+        router.push("/");
         return;
       }
 
@@ -130,7 +130,7 @@ export default function DashboardContent({
 
       if (response.status === 401) {
         // Token expired, redirect to sign in
-        router.push("/api/auth/signin");
+        router.push("/");
         return;
       }
 
@@ -171,7 +171,7 @@ export default function DashboardContent({
 
       if (response.status === 401) {
         // Token expired, redirect to sign in
-        router.push("/api/auth/signin");
+        router.push("/");
         return;
       }
 
