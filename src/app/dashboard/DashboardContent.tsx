@@ -143,6 +143,43 @@ export default function DashboardContent({
     }
   };
 
+  const handleInterestRateChange = async (newRate: number) => {
+    if (!selectedAccount) return;
+
+    try {
+      const response = await fetch(
+        `/api/accounts/${selectedAccount.accountId}/interestRate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.idToken}`,
+          },
+          body: JSON.stringify({ interestRate: Number(newRate) }),
+        }
+      );
+
+      if (response.status === 401) {
+        // Token expired, redirect to sign in
+        router.push("/api/auth/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to update interest rate");
+      }
+
+      await refreshAccounts();
+    } catch (error) {
+      console.error("Error updating interst rate:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update interest rate"
+      );
+    }
+  };
+
   const handleCreateAccount = async (name: string) => {
     try {
       const response = await fetch("/api/accounts", {
@@ -212,7 +249,8 @@ export default function DashboardContent({
     //TODO: commit this to the data store
     if (newRate !== undefined) {
       console.log("Updating interest rate to", newRate);
-      selectedAccount.interestRate = newRate;
+      handleInterestRateChange(newRate);
+      // selectedAccount.interestRate = newRate;
     }
 
     setIsRateChanging(false);
@@ -381,10 +419,7 @@ export default function DashboardContent({
         {selectedAccount ? (
           <div className="space-y-8">
             <DashboardCard title="Transaction History">
-              <TransactionHistory
-                transactions={selectedAccount.transactions}
-                currentBalance={selectedAccount.balance}
-              />
+              <TransactionHistory transactions={selectedAccount.transactions} />
             </DashboardCard>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -182,6 +182,37 @@ export async function createAccount(name: string): Promise<BankAccount> {
   }
 }
 
+export async function updateInterestRate(
+  accountId: string,
+  newInterestRate: number
+): Promise<BankAccount> {
+  try {
+    const { docClient, cognitoIdentityId } = await createDynamoDBClient();
+
+    const command = new UpdateCommand({
+      TableName: "BankAccounts",
+      Key: {
+        userId: cognitoIdentityId,
+        accountId,
+      },
+      UpdateExpression: "SET interestRate = :newInterestRate",
+      ExpressionAttributeValues: {
+        ":newInterestRate": newInterestRate,
+      },
+      ReturnValues: "ALL_NEW",
+    });
+
+    const response = await docClient.send(command);
+    return response.Attributes as BankAccount;
+  } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      throw error;
+    }
+    console.error("Error in addTransaction:", error);
+    throw new Error("Failed to add transaction");
+  }
+}
+
 export async function addTransaction(
   accountId: string,
   transaction: Omit<
