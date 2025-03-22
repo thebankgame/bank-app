@@ -281,12 +281,9 @@ export async function addTransaction(
         accountId,
       },
       UpdateExpression:
-        "SET balance = balance + :amount, transactions = list_append(if_not_exists(transactions, :empty_list), :transaction)",
+        "SET balance = :amount, transactions = list_append(if_not_exists(transactions, :empty_list), :transaction)",
       ExpressionAttributeValues: {
-        ":amount":
-          transaction.type === "deposit"
-            ? transaction.amount
-            : -transaction.amount,
+        ":amount": newRunningBalance,
         ":transaction": [newTransaction],
         ":empty_list": [],
       },

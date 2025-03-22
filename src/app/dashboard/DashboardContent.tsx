@@ -59,11 +59,14 @@ export default function DashboardContent({
 
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(
     accounts.find((account) => account.accountId === selectedAccountId) ||
-    accounts[0]);
+      accounts[0]
+  );
 
   const [isRateChanging, setIsRateChanging] = useState(false);
-  const [currentRate, setcurrentRate] = useState(selectedAccount?.interestRate) || 0;
-  const [currentBalance, setCurrentBalance] = useState(selectedAccount?.balance) || 0;
+  const [currentRate, setCurrentRate] =
+    useState(selectedAccount?.interestRate) || 0;
+  // const [currentBalance, setCurrentBalance] =
+  //   useState(selectedAccount?.balance) || 0;
 
   const refreshAccounts = async () => {
     setIsLoading(true);
@@ -90,6 +93,7 @@ export default function DashboardContent({
       setAccounts(data);
       if (data.length > 0 && !selectedAccountId) {
         setSelectedAccountId(data[0].accountId);
+        setSelectedAccount(data[0]);
       }
     } catch (error) {
       console.error("Error fetching accounts:", error);
@@ -140,15 +144,13 @@ export default function DashboardContent({
       const updatedAccount: BankAccount = await response.json();
       // console.log("selectedAccount response", updatedAccount);
       // console.log("selectedAccount.transactions BEFORE", selectedAccount.transactions);
-       setSelectedAccount(updatedAccount);
-//       console.log("selectedAccount.transactions AFTER", selectedAccount.transactions);
-        const { newBalance } =
-          calculateInterestSinceLastTransaction(
-            updatedAccount.transactions
-          );
-          console.log("setting currrentBalance", newBalance);
-        setCurrentBalance(newBalance);
-
+      setSelectedAccount(updatedAccount);
+      //       console.log("selectedAccount.transactions AFTER", selectedAccount.transactions);
+      const { newBalance } = calculateInterestSinceLastTransaction(
+        updatedAccount.transactions
+      );
+      // console.log("setting currrentBalance", newBalance);
+      // setCurrentBalance(newBalance);
     } catch (error) {
       console.error("Error creating transaction:", error);
       setError(
@@ -211,6 +213,8 @@ export default function DashboardContent({
       const newAccount: BankAccount = await response.json();
       setAccounts((current) => [...current, newAccount]);
       setSelectedAccountId(newAccount.accountId);
+      setSelectedAccount(newAccount);
+      setCurrentRate(newAccount.interestRate);
     } catch (error) {
       console.error("Error creating account:", error);
     }
@@ -315,7 +319,14 @@ export default function DashboardContent({
         <div className="flex items-center gap-4 mb-6">
           <select
             value={selectedAccountId}
-            onChange={(e) => setSelectedAccountId(e.target.value)}
+            onChange={(e) => {
+              setSelectedAccountId(e.target.value);
+              const account = accounts.find(
+                (acc) => acc.accountId === e.target.value
+              );
+              setSelectedAccount(account || null);
+              setCurrentRate(account?.interestRate || 0);
+            }}
             className="text-lg text-gray-700 bg-transparent border-none focus:ring-0 p-0"
           >
             {accounts.map((account) => (
@@ -343,7 +354,7 @@ export default function DashboardContent({
                   Current Balance
                 </h3>
                 <p className="text-2xl font-bold text-green-900">
-                  {currentBalance.toFixed(2)}
+                  {(selectedAccount.balance ?? 0).toFixed(2)}
                 </p>
               </div>
               <div className="bg-purple-100 rounded-lg shadow-md p-4">
@@ -357,12 +368,12 @@ export default function DashboardContent({
                   <div className="flex gap-2 items-center">
                     <input
                       type="number"
-                      placeholder="{currentRate}"
+                      placeholder={selectedAccount.interestRate.toFixed(1)} 
                       step="0.1"
                       min="0"
                       max="100"
                       value={currentRate}
-                      onChange={(e) => setcurrentRate(Number(e.target.value))}
+                      onChange={(e) => setCurrentRate(Number(e.target.value))}
                       className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                     />
                     <button
@@ -443,41 +454,41 @@ export default function DashboardContent({
         )}
 
         {selectedAccount && currentRate ? (
-        <div className="space-y-8">
-          <DashboardCard title="Transaction History">
-            <TransactionHistory transactions={selectedAccount.transactions} />
-          </DashboardCard>
+          <div className="space-y-8">
+            <DashboardCard title="Transaction History">
+              <TransactionHistory transactions={selectedAccount.transactions} />
+            </DashboardCard>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DashboardCard title="Interest Projection">
-              <div className="h-[300px]">
-                <CompoundInterestChart
-                  balance={currentBalance ?? 0}
-                  interestRate={currentRate}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DashboardCard title="Interest Projection">
+                <div className="h-[300px]">
+                  <CompoundInterestChart
+                    balance={selectedAccount.balance ?? 0}
+                    interestRate={selectedAccount.interestRate}
+                  />
+                </div>
+              </DashboardCard>
+              <DashboardCard title="Interest Rate Simulator">
+                <InterestRateSimulator
+                  initialBalance={selectedAccount.balance ?? 0}
+                  initialRate={selectedAccount.interestRate}
                 />
-              </div>
-            </DashboardCard>
-            <DashboardCard title="Interest Rate Simulator">
-              <InterestRateSimulator
-                initialBalance={currentBalance ?? 0}
-                initialRate={currentRate}
-              />
-            </DashboardCard>
+              </DashboardCard>
+            </div>
           </div>
-        </div>
         ) : (
-        <div className="text-center py-12">
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              No Account Selected
-            </h3>
-            <p className="text-gray-500">
-              Please select an account from the dropdown above to view its
-              details.
-            </p>
+          <div className="text-center py-12">
+            <div className="bg-white rounded-lg shadow-md p-8">
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No Account Selected
+              </h3>
+              <p className="text-gray-500">
+                Please select an account from the dropdown above to view its
+                details.
+              </p>
+            </div>
           </div>
-        </div>
-         ) }
+        )}
       </div>
     </div>
   );
