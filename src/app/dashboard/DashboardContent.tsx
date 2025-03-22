@@ -12,6 +12,8 @@ import type { BankAccount, Transaction, UserBankData } from "../../types/bank";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
+import SignOutButton from "../components/SignOutButton";
+import { signOut } from "next-auth/react";
 
 interface DashboardContentProps {
   session: Session;
@@ -276,7 +278,13 @@ export default function DashboardContent({
             Welcome to Your Bank
           </h1>
           <div className="text-sm text-gray-600">
-            {session.user?.name || session.user?.email}
+            {session.user?.name || session.user?.email}&nbsp;|&nbsp;
+            <button
+              onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
         <div className="flex items-center gap-4 mb-6">
