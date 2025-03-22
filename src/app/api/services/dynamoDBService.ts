@@ -241,8 +241,8 @@ export async function addTransaction(
     let newRunningBalance = 0;
     let lastBalance = 0;
 
-    console.log("sortedTransactions", sortedTransactions);
-    console.log("sortedTransactions.length", sortedTransactions.length);
+    // console.log("sortedTransactions", sortedTransactions);
+    // console.log("sortedTransactions.length", sortedTransactions.length);
 
     if (sortedTransactions.length > 0) {
       // Calculate interest since last transaction

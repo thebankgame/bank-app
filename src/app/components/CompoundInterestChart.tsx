@@ -32,6 +32,7 @@ export default function CompoundInterestChart({
   balance,
   interestRate,
 }: CompoundInterestChartProps) {
+console.log("CompoundInterestChart props:", { balance, interestRate });
   const years = 5;
   const dataPoints = Array.from({ length: years * 12 + 1 }, (_, i) => {
     const month = i;

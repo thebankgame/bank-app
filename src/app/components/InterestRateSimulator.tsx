@@ -22,9 +22,21 @@ export default function InterestRateSimulator({
   initialBalance,
   initialRate,
 }: InterestRateSimulatorProps) {
-  const [balance, setBalance] = useState(initialBalance || 0);
-  const [interestRate, setInterestRate] = useState(initialRate || 2.5);
-  const [chartData, setChartData] = useState({
+  console.log("InterestRateSimulator props:", { initialBalance, initialRate });
+
+  const [balance, setBalance] = useState(initialBalance);
+  const [interestRate, setInterestRate] = useState(initialRate);
+  const [chartData, setChartData] = useState<{
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      borderColor: string;
+      backgroundColor: string;
+      tension: number;
+      fill: boolean;
+    }[];
+  }>({
     labels: [],
     datasets: [],
   });
@@ -33,6 +45,11 @@ export default function InterestRateSimulator({
   useEffect(() => {
     setBalance(initialBalance || 0);
   }, [initialBalance]);
+
+  // Update balance when initialBalance changes
+  useEffect(() => {
+    setInterestRate(initialRate || 0);
+  }, [initialRate]);
 
   useEffect(() => {
     // Generate data points for 5 years
@@ -107,7 +124,7 @@ const formattedProjectedBalance: string = projectedBalance.toLocaleString(undefi
               Current Balance
             </h3>
             <p className="mt-1 text-xl font-semibold text-gray-900">
-              ${balance.toLocaleString()}
+              ${balance.toFixed(2)} 
             </p>
           </div>
           <div className="bg-white p-3 rounded-lg shadow">

@@ -8,7 +8,7 @@ import {
 
 export async function POST(request: Request, context: any) {
   const params = await context.params;
-  console.log('Context params:', context.params);
+//   console.log('Context params:', context.params);
   const accountId = params.accountId;
   if (!accountId) {
     return new NextResponse("Account ID is required", { status: 400 });

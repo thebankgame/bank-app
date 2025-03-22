@@ -48,8 +48,8 @@ export default function AccountOverview({ account }: AccountOverviewProps) {
     const newTransaction = {
       date: new Date().toISOString(),
       description: `Interest Rate changed from ${account.interestRate.toFixed(
-        2
-      )}% to ${newRate.toFixed(2)}%`,
+        1
+      )}% to ${newRate.toFixed(1)}%`,
       amount: 0,
       interest: accumulatedInterest,
       runningBalance:
