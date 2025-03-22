@@ -12,8 +12,8 @@ import type { BankAccount, Transaction, UserBankData } from "../../types/bank";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
-import SignOutButton from "../components/SignOutButton";
 import { signOut } from "next-auth/react";
+import SignOutButton from "../components/SignOutButton";
 
 interface DashboardContentProps {
   session: Session;
@@ -65,8 +65,6 @@ export default function DashboardContent({
   const [isRateChanging, setIsRateChanging] = useState(false);
   const [currentRate, setCurrentRate] =
     useState(selectedAccount?.interestRate) || 0;
-  // const [currentBalance, setCurrentBalance] =
-  //   useState(selectedAccount?.balance) || 0;
 
   const refreshAccounts = async () => {
     setIsLoading(true);
@@ -140,17 +138,11 @@ export default function DashboardContent({
         throw new Error("Failed to create transaction");
       }
 
-      // await refreshAccounts();
       const updatedAccount: BankAccount = await response.json();
-      // console.log("selectedAccount response", updatedAccount);
-      // console.log("selectedAccount.transactions BEFORE", selectedAccount.transactions);
       setSelectedAccount(updatedAccount);
-      //       console.log("selectedAccount.transactions AFTER", selectedAccount.transactions);
       const { newBalance } = calculateInterestSinceLastTransaction(
         updatedAccount.transactions
       );
-      // console.log("setting currrentBalance", newBalance);
-      // setCurrentBalance(newBalance);
     } catch (error) {
       console.error("Error creating transaction:", error);
       setError(
@@ -308,12 +300,13 @@ export default function DashboardContent({
           </h1>
           <div className="text-sm text-gray-600">
             {session.user?.name || session.user?.email}&nbsp;|&nbsp;
-            <button
+            <SignOutButton />
+            {/* <button
               onClick={() => signOut({ callbackUrl: "/auth/signin" })}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
               Sign Out
-            </button>
+            </button> */}
           </div>
         </div>
         <div className="flex items-center gap-4 mb-6">
@@ -368,7 +361,7 @@ export default function DashboardContent({
                   <div className="flex gap-2 items-center">
                     <input
                       type="number"
-                      placeholder={selectedAccount.interestRate.toFixed(1)} 
+                      placeholder={selectedAccount.interestRate.toFixed(1)}
                       step="0.1"
                       min="0"
                       max="100"
