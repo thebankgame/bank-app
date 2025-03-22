@@ -8,7 +8,7 @@ import CompoundInterestChart from "../components/CompoundInterestChart";
 import InterestRateSimulator from "../components/InterestRateSimulator";
 import NewTransactionForm from "../components/NewTransactionForm";
 import AccountSelector from "../components/AccountSelector";
-import type { BankAccount, UserBankData } from "../../types/bank";
+import type { BankAccount, Transaction, UserBankData } from "../../types/bank";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
@@ -57,6 +57,9 @@ export default function DashboardContent({
   const selectedAccount = accounts.find(
     (account) => account.accountId === selectedAccountId
   );
+
+  const [isRateChanging, setIsRateChanging] = useState(false);
+  const [newRate, setNewRate] = useState(selectedAccount?.interestRate);
 
   const refreshAccounts = async () => {
     setIsLoading(true);
@@ -160,6 +163,61 @@ export default function DashboardContent({
     }
   };
 
+  function calculateAccumulatedInterest(
+    prevTransaction: Transaction,
+    interestRate: number
+  ): number {
+    if (!prevTransaction || !interestRate) return 0;
+
+    const daysBetweenTransactions =
+      (new Date().getTime() - new Date(prevTransaction.timestamp).getTime()) /
+      (1000 * 60 * 60 * 24);
+
+    return (
+      prevTransaction.runningBalance *
+      (interestRate / 365) *
+      daysBetweenTransactions
+    );
+  }
+
+  const handleRateChange = () => {
+    if (!selectedAccount) return;
+
+    if (newRate === selectedAccount.interestRate) {
+      setIsRateChanging(false);
+      return;
+    }
+
+    const lastTransaction =
+      selectedAccount.transactions[selectedAccount.transactions.length - 1];
+    const accumulatedInterest = calculateAccumulatedInterest(
+      lastTransaction,
+      selectedAccount.interestRate
+    );
+
+    const newTransaction: {
+      type: "deposit" | "withdrawal";
+      amount: number;
+      description: string;
+    } = {
+      type: "deposit",
+      amount: 0,
+      description: `Interest Rate changed from ${selectedAccount?.interestRate.toFixed(
+        2
+      )}% to ${newRate?.toFixed(2)}%`,
+    };
+
+    handleNewTransaction(newTransaction);
+
+    //TODO: commit this to the data store
+    if (newRate !== undefined) {
+      console.log("Updating interest rate to", newRate);
+      selectedAccount.interestRate = newRate;
+    }
+
+    setIsRateChanging(false);
+  };
+
   if (error) {
     return <ErrorDisplay error={error} onRetry={refreshAccounts} />;
   }
@@ -218,8 +276,7 @@ export default function DashboardContent({
                   {(() => {
                     const { newBalance } =
                       calculateInterestSinceLastTransaction(
-                        selectedAccount.transactions,
-                        selectedAccount.balance
+                        selectedAccount.transactions
                       );
                     return newBalance.toFixed(2);
                   })()}
@@ -232,6 +289,39 @@ export default function DashboardContent({
                 <p className="text-2xl font-bold text-purple-900">
                   {selectedAccount.interestRate}%
                 </p>
+                {isRateChanging ? (
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="number"
+                      placeholder="{newRate}"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={newRate}
+                      onChange={(e) => setNewRate(Number(e.target.value))}
+                      className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                    />
+                    <button
+                      onClick={handleRateChange}
+                      className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+                    >
+                      Change
+                    </button>
+                    <button
+                      onClick={() => setIsRateChanging(false)}
+                      className="px-4 py-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsRateChanging(true)}
+                    className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+                  >
+                    Change
+                  </button>
+                )}{" "}
               </div>
               <div className="bg-orange-100 rounded-lg shadow-md p-4">
                 <h3 className="text-sm font-medium text-orange-800 mb-1">

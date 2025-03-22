@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { Transaction } from "../../types/bank";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
 
@@ -10,6 +11,25 @@ interface TransactionHistoryProps {
 export default function TransactionHistory({
   transactions,
 }: TransactionHistoryProps) {
+  const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    // Precompute the current date to avoid hydration mismatch
+    const now = new Date().toISOString();
+    setCurrentDate(
+      new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+        timeZoneName: "short",
+      }).format(new Date(now))
+    );
+  }, []);
+
   const formatCurrency = (amount: number | undefined | null) => {
     if (amount === undefined || amount === null || isNaN(amount)) {
       return new Intl.NumberFormat("en-US", {
@@ -71,19 +91,20 @@ export default function TransactionHistory({
             // Calculate interest since last transaction using shared function
             const { interestSinceLastTransaction } =
               calculateInterestSinceLastTransaction(
-                sortedTransactions,
-                sortedTransactions[0]?.runningBalance || 0
+                sortedTransactions
               );
 
             // Calculate new balance including latest interest
-            const latestBalance = (sortedTransactions[0]?.runningBalance || 0) + (interestSinceLastTransaction || 0);
+            const latestBalance =
+              (sortedTransactions[0]?.runningBalance || 0) +
+              (interestSinceLastTransaction || 0);
 
             return (
               <>
                 {/* Row for accumulated interest since last transaction */}
                 <tr className="bg-blue-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDateTime(new Date().toISOString())}
+                    {currentDate || "Loading..."}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     Accumulated interest

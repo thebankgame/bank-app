@@ -1,8 +1,7 @@
 import type { Transaction } from "../types/bank";
 
 export function calculateInterestSinceLastTransaction(
-  transactions: Transaction[],
-  currentBalance: number
+  transactions: Transaction[]
 ) {
   const sortedTransactions = [...transactions].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
