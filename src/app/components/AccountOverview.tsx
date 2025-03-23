@@ -1,3 +1,9 @@
+/**
+ * @fileoverview This component provides an overview of a bank account,
+ * including the current balance, interest rate, and the latest transaction.
+ * It also allows users to change the interest rate.
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,6 +13,18 @@ import { Session } from "next-auth";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
 import router from "next/router";
 
+/**
+ * Props for the AccountOverview component.
+ * 
+ * @typedef {Object} AccountOverviewProps
+ * @property {Session} session - The current user's session.
+ * @property {BankAccount | null} account - The bank account to display.
+ * @property {number | undefined} balance - The current balance of the account.
+ * @property {number | undefined} interestRate - The current interest rate of the account.
+ * @property {Transaction | null} latestTransaction - The latest transaction for the account.
+ * @property {(newRate: number) => void} onInterestRateChange - Callback to handle interest rate changes.
+ * @property {(newTransaction: Transaction) => void} onCreateNewTransaction - Callback to handle new transactions.
+ */
 interface AccountOverviewProps {
   session: Session;
   account: BankAccount | null;
@@ -17,6 +35,14 @@ interface AccountOverviewProps {
   onCreateNewTransaction: (newTransaction: Transaction) => void;
 }
 
+/**
+ * A component that displays an overview of a bank account, including the
+ * current balance, interest rate, and the latest transaction. It also allows
+ * users to change the interest rate.
+ * 
+ * @param {AccountOverviewProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the account overview.
+ */
 export default function AccountOverview({
   session,
   account,
@@ -41,6 +67,10 @@ export default function AccountOverview({
       setInputRate(interestRate || 0);
     }, [interestRate]);
 
+  /**
+   * Handles the interest rate change process, including creating a transaction
+   * to record the change and updating the account's interest rate.
+   */
   const handleRateChange = async () => {
     console.log("handling rate change to:", inputRate);
     setIsLoading(true);

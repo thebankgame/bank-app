@@ -1,3 +1,9 @@
+/**
+ * @fileoverview This component serves as the main content area for the user
+ * dashboard. It displays account details, transaction history, and tools for
+ * managing accounts and simulating interest rates.
+ */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,6 +23,13 @@ import SignOutButton from "../components/SignOutButton";
 import { createNewTransaction } from "@/lib/actions";
 import { createAccount } from "../api/services/dynamoDBService";
 
+/**
+ * Props for the DashboardContent component.
+ * 
+ * @typedef {Object} DashboardContentProps
+ * @property {Session} session - The current user's session.
+ * @property {UserBankData} initialData - The initial data for the user's bank accounts.
+ */
 interface DashboardContentProps {
   session: Session;
   initialData: UserBankData;
@@ -46,6 +59,13 @@ function ErrorDisplay({
   );
 }
 
+/**
+ * The main content area for the user dashboard. Displays account details,
+ * transaction history, and tools for managing accounts and simulating interest rates.
+ * 
+ * @param {DashboardContentProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the dashboard content.
+ */
 export default function DashboardContent({
   session,
   initialData,
@@ -70,6 +90,9 @@ export default function DashboardContent({
     selectedAccount?.transactions || []
   );
 
+  /**
+   * Refreshes the list of accounts by fetching the latest data from the server.
+   */
   const refreshAccounts = async () => {
 
     setError(null);
@@ -158,6 +181,12 @@ export default function DashboardContent({
     refreshAccounts();
   }, [session.idToken]);
 
+  /**
+   * Handles the creation of a new account.
+   * 
+   * @param {string} name - The name of the new account.
+   * @returns {Promise<BankAccount | null>} The newly created account or null if creation failed.
+   */
   const handleCreateAccount = async (
     name: string
   ): Promise<BankAccount | null> => {

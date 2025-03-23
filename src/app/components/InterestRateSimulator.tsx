@@ -1,7 +1,12 @@
+/**
+ * @fileoverview This component simulates the growth of a balance over time
+ * based on a user-defined interest rate. It displays a chart of the projected
+ * balance and allows users to adjust the interest rate dynamically.
+ */
+
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,21 +30,25 @@ ChartJS.register(
   Legend
 );
 
-// Dynamically import Chart.js components with no SSR
-// const Chart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Line), {
-//   ssr: false,
-//   loading: () => (
-//     <div className="h-[200px] flex items-center justify-center">
-//       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-//     </div>
-//   ),
-// });
-
+/**
+ * Props for the InterestRateSimulator component.
+ * 
+ * @typedef {Object} InterestRateSimulatorProps
+ * @property {number | undefined} initialBalance - The initial balance to simulate.
+ * @property {number | undefined} initialRate - The initial interest rate to simulate.
+ */
 interface InterestRateSimulatorProps {
   initialBalance: number | undefined;
   initialRate: number | undefined;
 }
 
+/**
+ * A component that simulates and visualizes the growth of a balance over time
+ * based on a user-defined interest rate.
+ * 
+ * @param {InterestRateSimulatorProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the interest rate simulator.
+ */
 export default function InterestRateSimulator({
   initialBalance = 0,
   initialRate = 0,
@@ -118,7 +127,11 @@ export default function InterestRateSimulator({
   
   }, [balance, interestRate]);
 
-
+  /**
+   * Handles changes to the interest rate slider.
+   * 
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The change event from the slider.
+   */
   const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newRate = parseFloat(e.target.value);
     setInterestRate(newRate);

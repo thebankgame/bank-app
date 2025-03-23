@@ -1,3 +1,8 @@
+/**
+ * @fileoverview This component provides a form for creating new transactions
+ * (deposits or withdrawals) for a specific bank account.
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -6,12 +11,26 @@ import { createNewTransaction } from "@/lib/actions";
 import { BankAccount } from "@/types/bank";
 import { Session } from "next-auth";
 
+/**
+ * Props for the NewTransactionForm component.
+ * 
+ * @typedef {Object} NewTransactionFormProps
+ * @property {Session} session - The current user's session.
+ * @property {BankAccount} account - The bank account for which the transaction is being created.
+ * @property {(transaction: Transaction) => void} onCreateNewTransaction - Callback to handle the creation of a new transaction.
+ */
 interface NewTransactionFormProps {
   session: Session;
   account: BankAccount;
   onCreateNewTransaction: (transaction: Transaction) => void;
 }
 
+/**
+ * A form component for creating new transactions (deposits or withdrawals).
+ * 
+ * @param {NewTransactionFormProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the new transaction form.
+ */
 export default function NewTransactionForm({
   session,
   account,
@@ -22,6 +41,11 @@ export default function NewTransactionForm({
   const [type, setType] = useState<"deposit" | "withdrawal">("withdrawal");
   const [isLoading, setIsLoading] = useState(false);
 
+  /**
+   * Handles the form submission to create a new transaction.
+   * 
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
