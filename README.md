@@ -4,7 +4,7 @@
 This app was created by one person in a matter of days, primarily for an interview at thrv. It was built to be a focus of conversation about software engineering, using a tech stack similar to that in use at thrv (TypeScript, Next.js, DynamoDB). I used a mix of AI tools while building the app, including Cursor, Windsurf, GitHub Copilot and Google Gemini. The AI tools built a core foundation of the app quickly, but as the application grew in complexity I found it faster to pivot toward writing manual code and using the AI tools for targeted fixing of bugs and working in isolated chunks code. 
 
 ### Next Steps
-What's missing from this app? If I were going to take it to production, I would add a number of aspects more typical of production app, including: 
+What's missing from this app? If I were going to take it to production, I would add a number of aspects more typical of production apps, including: 
 * Automated testing
 * Localization
 * Accessibility
