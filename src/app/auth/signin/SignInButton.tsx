@@ -25,10 +25,7 @@ interface SignInButtonProps {
  * @param {SignInButtonProps} props - The props for the component.
  * @returns {JSX.Element} The JSX structure for the sign-in button.
  */
-export default function SignInButton({
-  providerId,
-  providerName,
-}: SignInButtonProps) {
+export default function SignInButton({ providerId }: SignInButtonProps) {
   return (
     <button
       onClick={() => signIn(providerId, { callbackUrl: "/dashboard" })}

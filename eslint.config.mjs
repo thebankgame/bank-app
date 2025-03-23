@@ -6,10 +6,10 @@ import typescriptParser from "@typescript-eslint/parser"; // Import the parser
 
 export default [
   {
-    ignores: ["**/dev", "**/.next/*", "**/temp.js", "config/*"]
+    ignores: ["**/dev", "**/.next/*", "**/temp.js", "config/*"],
   },
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -35,7 +35,10 @@ export default [
           message: "Do not use spread arguments in Array.push",
         },
       ],
-      "no-unused-vars": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
       "import/no-duplicates": "error", // Ensure this rule works with the "import" plugin
       "import/no-unresolved": "off",
       "import/order": "off",

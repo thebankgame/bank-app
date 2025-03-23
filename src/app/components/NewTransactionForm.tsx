@@ -53,10 +53,7 @@ export default function NewTransactionForm({
 
     const numericAmount = parseFloat(amount);
     if (!isNaN(numericAmount) && description.trim()) {
-      const transaction: Omit<
-        Transaction,
-        "transactionId" | "runningBalance" | "accumulatedInterest"
-      > = {
+      const transaction = {
         type,
         amount: numericAmount,
         timestamp: new Date().toISOString(),

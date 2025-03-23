@@ -26,28 +26,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ account, profile }) {
       if (account && profile) {
-        // console.log("SignIn Callback:", {
-        //   userId: profile.sub,
-        //   email: profile.email,
-        //   hasIdToken: !!account.id_token,
-        //   hasAccessToken: !!account.access_token
-        // });
         return true;
       }
       return false;
     },
-    async jwt({ token, account, profile, user }) {
+    async jwt({ token, account, profile }) {
       // Initial sign in
       if (account && profile) {
-        // console.log("JWT Callback - Initial sign in:", {
-        //   sub: profile.sub,
-        //   email: profile.email,
-        //   hasIdToken: !!account.id_token,
-        //   hasAccessToken: !!account.access_token
-        // });
-        
         return {
           ...token,
           id: profile.sub,
@@ -62,15 +49,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // console.log("Session Callback - Token data:", {
-      //   sub: token.sub,
-      //   id: token.id,
-      //   hasIdToken: !!token.idToken,
-      //   hasAccessToken: !!token.accessToken,
-      //   tokenKeys: Object.keys(token)
-      // });
-
-      // Always return a valid session with the user ID
       return {
         ...session,
         user: {
@@ -87,11 +65,11 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   events: {
-    async signIn(message) {
-      // console.log("SignIn Event:", message);
+    async signIn() {
+      // No-op
     },
-    async session(message) {
-      // console.log("Session Event:", message);
+    async session() {
+      // No-op
     },
   },
   debug: process.env.NODE_ENV === "development",

@@ -10,7 +10,6 @@ import { useEffect, useState } from "react";
 import { createNewTransaction } from "@/lib/actions";
 import { BankAccount, Transaction } from "@/types/bank";
 import { Session } from "next-auth";
-import { calculateInterestSinceLastTransaction } from "../utils/interest";
 import router from "next/router";
 
 /**
@@ -22,7 +21,6 @@ import router from "next/router";
  * @property {number | undefined} balance - The current balance of the account.
  * @property {number | undefined} interestRate - The current interest rate of the account.
  * @property {Transaction | null} latestTransaction - The latest transaction for the account.
- * @property {(newRate: number) => void} onInterestRateChange - Callback to handle interest rate changes.
  * @property {(newTransaction: Transaction) => void} onCreateNewTransaction - Callback to handle new transactions.
  */
 interface AccountOverviewProps {
@@ -31,8 +29,8 @@ interface AccountOverviewProps {
   balance: number | undefined;
   interestRate: number | undefined;
   latestTransaction: Transaction | null;
-  onInterestRateChange: (newRate: number) => void;
-  onCreateNewTransaction: (newTransaction: Transaction) => void;
+  onInterestRateChange: (_newRate: number) => void;
+  onCreateNewTransaction: (_newTransaction: Transaction) => void;
 }
 
 /**
@@ -49,8 +47,8 @@ export default function AccountOverview({
   balance,
   interestRate,
   latestTransaction,
-  onInterestRateChange,
-  onCreateNewTransaction: onTransactionsChange,
+  onInterestRateChange: _onInterestRateChange,
+  onCreateNewTransaction: _onTransactionsChange,
 }: AccountOverviewProps) {
   const [isRateChanging, setIsRateChanging] = useState(false);
   const [inputRate, setInputRate] = useState(interestRate) || 0;
@@ -72,7 +70,6 @@ export default function AccountOverview({
    * to record the change and updating the account's interest rate.
    */
   const handleRateChange = async () => {
-    console.log("handling rate change to:", inputRate);
     setIsLoading(true);
     if (!account) {
       console.error("No account selected");
@@ -85,15 +82,9 @@ export default function AccountOverview({
     }
 
     if (inputRate === account.interestRate) {
-      console.log("Rate unchanged");
       setIsRateChanging(false);
       return;
     }
-
-    const accumulatedInterest = calculateInterestSinceLastTransaction(
-      account.interestRate,
-      account.transactions
-    );
 
     const transaction: Omit<
       Transaction,
@@ -117,12 +108,9 @@ export default function AccountOverview({
       console.error("Unable to create new transaction");
       return;
     }
-    onTransactionsChange(newTransaction);
-
-    console.log("about to update interest rate to", inputRate);
+    _onTransactionsChange(newTransaction);
 
     if (inputRate !== undefined) {
-      console.log("Updating interest rate to", inputRate);
       handleInterestRateChange(inputRate);
     }
 
@@ -154,7 +142,7 @@ export default function AccountOverview({
         throw new Error("Failed to update interest rate");
       }
 
-      onInterestRateChange(newRate);
+      _onInterestRateChange(newRate);
     } catch (error) {
       console.error("Error updating interst rate:", error);
     }
@@ -199,13 +187,13 @@ export default function AccountOverview({
               {isLoading ? "Processing..." : "Change"}
             </button>
             {!isLoading && (
-            <button
-              onClick={() => setIsRateChanging(false)}
-              className="px-4 py-2 text-gray-700 hover:text-gray-900 focus:outline-none"
-            >
-              Cancel
-            </button>
-          )}
+              <button
+                onClick={() => setIsRateChanging(false)}
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         ) : (
           <button

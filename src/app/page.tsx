@@ -51,18 +51,18 @@ export default async function Home() {
           interest rate and adjusting as they learn.
         </p>
         <p className="text-lg text-gray-700 mb-6">
-          Kids aren't incentivized to save when a bank pays them only $3 to not
-          spend Grandma's $100 birthday check for an entire year (which feels
-          like an eternity to a child!). Now, you can run your own bank for your
-          kids, showing them the value of compounding interest by paying them $3
-          each week they save, or each month, or whatever is appropriate for
-          their age and understanding.
+          Kids aren&apos;t incentivized to save when a bank pays them only $3 to
+          not spend Grandma&apos;s $100 birthday check for an entire year (which
+          feels like an eternity to a child!). Now, you can run your own bank
+          for your kids, showing them the value of compounding interest by
+          paying them $3 each week they save, or each month, or whatever is
+          appropriate for their age and understanding.
         </p>
         <p className="text-lg text-gray-700 mb-6">
-          In this interactive application, you'll get to run your own virtual
-          bank. You'll manage multiple accounts, track transactions, and work
-          with your kids to model how money would grow with different interest
-          rates.
+          In this interactive application, you&apos;ll get to run your own
+          virtual bank. You&apos;ll manage multiple accounts, track
+          transactions, and work with your kids to model how money would grow
+          with different interest rates.
         </p>
         <div className="flex justify-center mt-8">
           <div className="flex justify-center mt-8">

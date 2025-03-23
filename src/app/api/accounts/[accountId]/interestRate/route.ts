@@ -6,9 +6,8 @@ import {
   getAccount,
 } from "../../../services/dynamoDBService";
 
-export async function POST(request: Request, context: any) {
-  const params = await context.params;
-//   console.log('Context params:', context.params);
+export async function POST(request: Request, context: { params: { accountId: string } }) {
+  const params = context.params;
   const accountId = params.accountId;
   if (!accountId) {
     return new NextResponse("Account ID is required", { status: 400 });
@@ -21,19 +20,15 @@ export async function POST(request: Request, context: any) {
     }
 
     const { interestRate } = await request.json();
-    console.log('interestRate:', interestRate);
     if (interestRate === undefined) {
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
-    // Verify the account belongs to the user
     const account = await getAccount(accountId);
     if (!account) {
       return new NextResponse("Account not found", { status: 404 });
     }
 
-    // Add the new transaction
-    const now = new Date().toISOString();
     const updatedAccount = await updateInterestRate(accountId, interestRate);
 
     return NextResponse.json(updatedAccount);

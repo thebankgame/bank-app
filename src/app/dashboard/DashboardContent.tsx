@@ -13,15 +13,11 @@ import TransactionHistory from "../components/TransactionHistory";
 import CompoundInterestChart from "../components/CompoundInterestChart";
 import InterestRateSimulator from "../components/InterestRateSimulator";
 import NewTransactionForm from "../components/NewTransactionForm";
-import AccountSelector from "../components/AccountSelector";
 import type { BankAccount, Transaction, UserBankData } from "../../types/bank";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
-import { calculateInterestSinceLastTransaction } from "../utils/interest";
-import { signOut } from "next-auth/react";
 import SignOutButton from "../components/SignOutButton";
 import { createNewTransaction } from "@/lib/actions";
-import { createAccount } from "../api/services/dynamoDBService";
 
 /**
  * Props for the DashboardContent component.

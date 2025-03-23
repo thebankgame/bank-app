@@ -10,8 +10,8 @@ import { withAuth } from "next-auth/middleware";
  * @param {Request} req - The incoming request object.
  */
 export default withAuth(
-  function middleware(req) {
-    // Your custom middleware logic here if needed
+  function middleware() {
+    // No-op
   },
   {
     callbacks: {

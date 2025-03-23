@@ -2,7 +2,7 @@
  * @fileoverview Service functions for managing transactions in user bank accounts.
  */
 
-import { BankAccount, Transaction, UserBankData } from "@/types/bank";
+import { Transaction, UserBankData } from "@/types/bank";
 
 /**
  * Adds a new transaction to a user's bank account.
