@@ -24,13 +24,13 @@ ChartJS.register(
 );
 
 interface CompoundInterestChartProps {
-  balance: number;
-  interestRate: number;
+  balance: number | undefined;
+  interestRate: number | undefined;
 }
 
 export default function CompoundInterestChart({
-  balance,
-  interestRate,
+  balance = 0,
+  interestRate = 0,
 }: CompoundInterestChartProps) {
 console.log("CompoundInterestChart props:", { balance, interestRate });
   const years = 5;

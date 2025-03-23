@@ -9,8 +9,8 @@ import router from "next/router";
 
 interface AccountOverviewProps {
   session: Session;
-  account: BankAccount;
-  balance: number;
+  account: BankAccount | null;
+  balance: number | undefined;
   latestTransaction: Transaction | null;
   onInterestRateChange: (newRate: number) => void;
   onCreateNewTransaction: (newTransaction: Transaction) => void;
@@ -27,6 +27,8 @@ export default function AccountOverview({
   const [isRateChanging, setIsRateChanging] = useState(false);
   const [inputRate, setInputRate] = useState(account?.interestRate) || 0;
   const [currentRate, setCurrentRate] = useState(account?.interestRate) || 0;
+
+  console.log("rendering account overview for account: ", account);
 
   const handleRateChange = async () => {
     console.log("handling rate change to:", inputRate);

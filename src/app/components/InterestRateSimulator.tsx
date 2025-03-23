@@ -36,13 +36,13 @@ ChartJS.register(
 // });
 
 interface InterestRateSimulatorProps {
-  initialBalance: number;
-  initialRate: number;
+  initialBalance: number | undefined;
+  initialRate: number | undefined;
 }
 
 export default function InterestRateSimulator({
-  initialBalance,
-  initialRate,
+  initialBalance = 0,
+  initialRate = 0,
 }: InterestRateSimulatorProps) {
   console.log("InterestRateSimulator props:", { initialBalance, initialRate });
 

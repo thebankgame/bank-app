@@ -71,7 +71,7 @@ export default function DashboardContent({
   );
 
   const refreshAccounts = async () => {
-    //    setIsLoading(true);
+
     setError(null);
     try {
       const response = await fetch("/api/accounts", {
@@ -92,13 +92,16 @@ export default function DashboardContent({
       }
 
       const data: BankAccount[] = await response.json();
-      if (data.length > 0 && !selectedAccountId) {
+      if (data.length > 0) {
         setAccounts(data);
-        setSelectedAccountId(data[0].accountId);
-        setSelectedAccount(data[0]);
-        setCurrentRate(data[0].interestRate);
+        if (!selectedAccountId) {
+          setSelectedAccountId(data[0].accountId);
+          setSelectedAccount(data[0]);
+          setCurrentRate(data[0].interestRate);
+          setCurrentBalance(data[0].balance);
+          setTransactions(data[0].transactions);
+          }
       } else {
-
         // Create a playground account so the user can play around with the app
         const newAccount = await handleCreateAccount("Playground");
         if (!newAccount) {
@@ -111,9 +114,7 @@ export default function DashboardContent({
 
         const transaction: Omit<
           Transaction,
-          | "transactionId"
-          | "runningBalance"
-          | "accumulatedInterest"
+          "transactionId" | "runningBalance" | "accumulatedInterest"
         > = {
           type: "deposit",
           amount: 1000,
@@ -139,10 +140,11 @@ export default function DashboardContent({
         setSelectedAccountId(data[0].accountId);
         setSelectedAccount(data[0]);
         setCurrentRate(data[0].interestRate);
+        setCurrentBalance(data[0].balance);
+        setTransactions(data[0].transactions);
 
         handleNewTransaction(newTransaction);
       }
-
     } catch (error) {
       console.error("Error creating account: ", error);
       setError(
@@ -187,13 +189,11 @@ export default function DashboardContent({
   async function handleInterestRateChange(newRate: number) {
     console.log("about to handleInterstRateChange to ", newRate);
     setCurrentRate(newRate);
-    // await refreshAccounts();
+
   }
 
   async function handleNewTransaction(newTransaction: Transaction) {
     console.log("about to handleTransactionsChange");
-
-    // if (!selectedAccount) return;
 
     setTransactions((prev) => [...prev, newTransaction]);
     setCurrentBalance(newTransaction.runningBalance);
@@ -255,7 +255,7 @@ export default function DashboardContent({
           </button>
         </div>
 
-        {selectedAccount && currentBalance ? (
+        
           <AccountOverview
             session={session}
             account={selectedAccount}
@@ -264,16 +264,14 @@ export default function DashboardContent({
             onInterestRateChange={handleInterestRateChange}
             onCreateNewTransaction={handleNewTransaction}
           />
-        ) : null}
 
-        {currentRate && currentBalance ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <DashboardCard
               title={
                 "Balance Projection for $" +
                 currentBalance?.toFixed(2) +
                 " at " +
-                currentRate.toFixed(1) +
+                currentRate?.toFixed(1) +
                 "%"
               }
             >
@@ -291,7 +289,6 @@ export default function DashboardContent({
               />
             </DashboardCard>
           </div>
-        ) : null}
 
         <div className="mb-8">
           <DashboardCard title="New Transaction">
