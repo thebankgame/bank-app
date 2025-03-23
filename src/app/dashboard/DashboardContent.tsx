@@ -15,6 +15,7 @@ import { calculateInterestSinceLastTransaction } from "../utils/interest";
 import { signOut } from "next-auth/react";
 import SignOutButton from "../components/SignOutButton";
 import { createNewTransaction } from "@/lib/actions";
+import { createAccount } from "../api/services/dynamoDBService";
 
 interface DashboardContentProps {
   session: Session;
@@ -91,19 +92,63 @@ export default function DashboardContent({
       }
 
       const data: BankAccount[] = await response.json();
-      setAccounts(data);
       if (data.length > 0 && !selectedAccountId) {
+        setAccounts(data);
         setSelectedAccountId(data[0].accountId);
         setSelectedAccount(data[0]);
         setCurrentRate(data[0].interestRate);
+      } else {
+
+        // Create a playground account so the user can play around with the app
+        const newAccount = await handleCreateAccount("Playground");
+        if (!newAccount) {
+          console.error("New account creation failed");
+          return;
+        }
+
+        let oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+        const transaction: Omit<
+          Transaction,
+          | "transactionId"
+          | "runningBalance"
+          | "accumulatedInterest"
+        > = {
+          type: "deposit",
+          amount: 1000,
+          timestamp: oneYearAgo.toISOString(),
+          description: "Starting Balance",
+        };
+
+        const newTransaction = await createNewTransaction(
+          session,
+          newAccount,
+          transaction
+        );
+
+        if (!newTransaction) {
+          console.error("Unable to create new transaction");
+          return;
+        }
+
+        console.log("Playground transaction created:", newTransaction);
+
+        data.push(newAccount);
+        setAccounts(data);
+        setSelectedAccountId(data[0].accountId);
+        setSelectedAccount(data[0]);
+        setCurrentRate(data[0].interestRate);
+
+        handleNewTransaction(newTransaction);
       }
+
     } catch (error) {
-      console.error("Error fetching accounts:", error);
+      console.error("Error creating account: ", error);
       setError(
-        error instanceof Error ? error.message : "Failed to load accounts"
+        error instanceof Error ? error.message : "Failed to create account"
       );
     } finally {
-      //     setIsLoading(false);
     }
   };
 
@@ -111,7 +156,9 @@ export default function DashboardContent({
     refreshAccounts();
   }, [session.idToken]);
 
-  const handleCreateAccount = async (name: string) => {
+  const handleCreateAccount = async (
+    name: string
+  ): Promise<BankAccount | null> => {
     try {
       const response = await fetch("/api/accounts", {
         method: "POST",
@@ -124,15 +171,16 @@ export default function DashboardContent({
       if (!response.ok) throw new Error("Failed to create account");
 
       const newAccount: BankAccount = await response.json();
-      console.log("New account created:", newAccount);  
+      console.log("New account created:", newAccount);
       setAccounts((current) => [...current, newAccount]);
       setSelectedAccountId(newAccount.accountId);
       setSelectedAccount(newAccount);
       setCurrentRate(newAccount.interestRate);
       setTransactions(newAccount.transactions);
-      
+      return newAccount;
     } catch (error) {
       console.error("Error creating account:", error);
+      return null;
     }
   };
 
@@ -145,7 +193,7 @@ export default function DashboardContent({
   async function handleNewTransaction(newTransaction: Transaction) {
     console.log("about to handleTransactionsChange");
 
-    if (!selectedAccount) return;
+    // if (!selectedAccount) return;
 
     setTransactions((prev) => [...prev, newTransaction]);
     setCurrentBalance(newTransaction.runningBalance);
@@ -220,7 +268,15 @@ export default function DashboardContent({
 
         {currentRate && currentBalance ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DashboardCard title={"Balance Projection for $" + currentBalance?.toFixed(2) + " at " + currentRate.toFixed(1) + "%"}>
+            <DashboardCard
+              title={
+                "Balance Projection for $" +
+                currentBalance?.toFixed(2) +
+                " at " +
+                currentRate.toFixed(1) +
+                "%"
+              }
+            >
               <div className="h-[300px]">
                 <CompoundInterestChart
                   balance={currentBalance}
@@ -265,8 +321,8 @@ export default function DashboardContent({
                 No Account Selected
               </h3>
               <p className="text-gray-500">
-                Please select an account from the dropdown above to view transaction
-                details.
+                Please select an account from the dropdown above to view
+                transaction details.
               </p>
             </div>
           </div>

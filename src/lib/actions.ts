@@ -6,7 +6,7 @@ import { Session } from "next-auth";
 
 export async function createNewTransaction(session: Session, account: BankAccount, transaction: Omit<
     Transaction,
-    "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
+    "transactionId" | "runningBalance" | "accumulatedInterest"
   >): Promise<Transaction | undefined> {
 
     try {

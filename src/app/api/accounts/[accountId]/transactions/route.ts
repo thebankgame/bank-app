@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { addTransaction, getAccount } from "../../../services/dynamoDBService";
+import { time } from "console";
 
 export async function POST(request: Request, context: any) {
   // console.log('Context params:', context.params);
@@ -17,9 +18,16 @@ export async function POST(request: Request, context: any) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { type, amount, description } = await request.json();
+    let transactionTimestamp = new Date().toISOString();
+
+    const { type, amount, timestamp, description } = await request.json();
+
     if (!type || amount === undefined || !description) {
       return new NextResponse("Missing required fields", { status: 400 });
+    }
+
+    if (timestamp) {
+      transactionTimestamp = timestamp;
     }
 
     // Verify the account belongs to the user
@@ -29,7 +37,6 @@ export async function POST(request: Request, context: any) {
     }
 
     // Add the new transaction
-    const now = new Date().toISOString();
     const updatedAccount = await addTransaction(
       accountId,
       {
@@ -37,7 +44,7 @@ export async function POST(request: Request, context: any) {
         amount,
         description,
       },
-      now
+      transactionTimestamp
     );
 
     return NextResponse.json(updatedAccount);

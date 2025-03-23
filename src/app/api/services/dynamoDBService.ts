@@ -228,7 +228,7 @@ export async function addTransaction(
     Transaction,
     "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
   >,
-  timestamp: string
+  transactionTimestamp: string
 ): Promise<BankAccount> {
   try {
     const { docClient, cognitoIdentityId } = await createDynamoDBClient();
@@ -237,8 +237,6 @@ export async function addTransaction(
     if (!account) {
       throw new Error("Account not found");
     }
-
-    const now = timestamp;
 
     // Calculate accumulated interest up to this point
     const sortedTransactions = [...account.transactions].sort(
@@ -268,7 +266,7 @@ export async function addTransaction(
     const newTransaction: Transaction = {
       transactionId: uuidv4(),
       ...transaction,
-      timestamp: now,
+      timestamp: transactionTimestamp,
       runningBalance: newRunningBalance,
       accumulatedInterest: interestSinceLastTransaction,
     };
