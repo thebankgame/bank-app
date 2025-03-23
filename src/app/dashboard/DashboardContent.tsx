@@ -181,7 +181,6 @@ export default function DashboardContent({
                 (acc) => acc.accountId === e.target.value
               );
               setSelectedAccount(account || null);
-              // setCurrentRate(account?.interestRate || 0);
             }}
             className="text-lg text-gray-700 bg-transparent border-none focus:ring-0 p-0"
           >
@@ -212,6 +211,25 @@ export default function DashboardContent({
           />
         ) : null}
 
+        {currentRate && currentBalance ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <DashboardCard title={"Interest Projection for $" + currentBalance?.toFixed(2) + " at " + currentRate.toFixed(1) + "%"}>
+              <div className="h-[300px]">
+                <CompoundInterestChart
+                  balance={currentBalance}
+                  interestRate={currentRate}
+                />
+              </div>
+            </DashboardCard>
+            <DashboardCard title="Interest Rate Simulator">
+              <InterestRateSimulator
+                initialBalance={currentBalance}
+                initialRate={currentRate}
+              />
+            </DashboardCard>
+          </div>
+        ) : null}
+
         <div className="mb-8">
           <DashboardCard title="New Transaction">
             {selectedAccount && (
@@ -224,7 +242,7 @@ export default function DashboardContent({
           </DashboardCard>
         </div>
 
-        {selectedAccount && currentRate ? (
+        {currentRate ? (
           <div className="space-y-8">
             <DashboardCard title="Transaction History">
               <TransactionHistory
@@ -232,23 +250,6 @@ export default function DashboardContent({
                 transactions={transactions}
               />
             </DashboardCard>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DashboardCard title="Interest Projection">
-                <div className="h-[300px]">
-                  <CompoundInterestChart
-                    balance={currentBalance || 0}
-                    interestRate={currentRate}
-                  />
-                </div>
-              </DashboardCard>
-              <DashboardCard title="Interest Rate Simulator">
-                <InterestRateSimulator
-                  initialBalance={currentBalance || 0}
-                  initialRate={currentRate}
-                />
-              </DashboardCard>
-            </div>
           </div>
         ) : (
           <div className="text-center py-12">
@@ -257,7 +258,7 @@ export default function DashboardContent({
                 No Account Selected
               </h3>
               <p className="text-gray-500">
-                Please select an account from the dropdown above to view its
+                Please select an account from the dropdown above to view transaction
                 details.
               </p>
             </div>
