@@ -1,5 +1,20 @@
+/**
+ * @fileoverview Service functions for managing transactions in user bank accounts.
+ */
+
 import { BankAccount, Transaction, UserBankData } from "@/types/bank";
 
+/**
+ * Adds a new transaction to a user's bank account.
+ *
+ * @param {UserBankData} userData - The user's bank data.
+ * @param {string} accountId - The ID of the account to which the transaction will be added.
+ * @param {string} description - A description of the transaction.
+ * @param {number} amount - The amount of the transaction.
+ * @param {"deposit" | "withdrawal"} type - The type of the transaction.
+ * @returns {UserBankData} The updated user bank data.
+ * @throws {Error} If the account is not found.
+ */
 export const addTransaction = (
   userData: UserBankData,
   accountId: string,
@@ -42,6 +57,14 @@ export const addTransaction = (
   return updatedUserData;
 };
 
+/**
+ * Retrieves the transaction history for a specific bank account.
+ *
+ * @param {UserBankData} userData - The user's bank data.
+ * @param {string} accountId - The ID of the account whose transactions will be retrieved.
+ * @returns {Transaction[]} The list of transactions for the specified account.
+ * @throws {Error} If the account is not found.
+ */
 export const getTransactionHistory = (
   userData: UserBankData,
   accountId: string
@@ -51,4 +74,4 @@ export const getTransactionHistory = (
     throw new Error("Account not found");
   }
   return account.transactions;
-}; 
+};

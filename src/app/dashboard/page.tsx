@@ -1,13 +1,21 @@
+/**
+ * @fileoverview The main dashboard page for the application. It fetches user data and displays the dashboard content.
+ */
+
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import DashboardContent from "./DashboardContent";
-import { BankAccount, UserBankData } from "@/types/bank";
+import { UserBankData } from "@/types/bank";
 import { getAccounts } from "../api/services/dynamoDBService";
 import SignOutButton from "../components/SignOutButton";
 
-
-// Server component
+/**
+ * The main dashboard page component.
+ *
+ * @async
+ * @returns {Promise<JSX.Element>} The JSX structure for the dashboard page.
+ */
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 

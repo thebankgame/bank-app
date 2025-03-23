@@ -1,7 +1,16 @@
+/**
+ * @fileoverview This component renders a button for signing out the user using NextAuth.
+ */
+
 "use client";
 
 import { signOut } from "next-auth/react";
 
+/**
+ * A button component for signing out the user.
+ *
+ * @returns {JSX.Element} The JSX structure for the sign-out button.
+ */
 export default function SignOutButton() {
   return (
     <button

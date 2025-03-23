@@ -1,5 +1,16 @@
+/**
+ * @fileoverview Utility functions for calculating interest based on transactions and interest rates.
+ */
+
 import type { Transaction } from "@/types/bank";
 
+/**
+ * Calculates the interest accumulated since the last transaction.
+ *
+ * @param {number} interestRate - The annual interest rate as a percentage.
+ * @param {Transaction[]} transactions - The list of transactions for the account.
+ * @returns {Object} An object containing the interest since the last transaction, the new balance, and date details.
+ */
 export function calculateInterestSinceLastTransaction( interestRate: number, transactions: Transaction[]) {
   const sortedTransactions = [...transactions].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()

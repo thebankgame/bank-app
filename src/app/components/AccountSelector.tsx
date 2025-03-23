@@ -1,8 +1,22 @@
+/**
+ * @fileoverview This component allows users to select a bank account from a dropdown
+ * or create a new account by providing a name.
+ */
+
 "use client";
 
 import type { BankAccount } from "../../types/bank";
 import { useState } from "react";
 
+/**
+ * Props for the AccountSelector component.
+ *
+ * @typedef {Object} AccountSelectorProps
+ * @property {BankAccount[]} accounts - The list of available bank accounts.
+ * @property {string} selectedAccountId - The ID of the currently selected account.
+ * @property {(accountId: string) => void} onSelectAccount - Callback to handle account selection.
+ * @property {(name: string) => void} onCreateAccount - Callback to handle account creation.
+ */
 interface AccountSelectorProps {
   accounts: BankAccount[];
   selectedAccountId: string;
@@ -10,6 +24,12 @@ interface AccountSelectorProps {
   onCreateAccount: (name: string) => void;
 }
 
+/**
+ * A component that allows users to select a bank account or create a new one.
+ *
+ * @param {AccountSelectorProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the account selector.
+ */
 export default function AccountSelector({
   accounts,
   selectedAccountId,
@@ -19,6 +39,9 @@ export default function AccountSelector({
   const [isCreating, setIsCreating] = useState(false);
   const [newAccountName, setNewAccountName] = useState("");
 
+  /**
+   * Handles the creation of a new account.
+   */
   const handleCreateAccount = () => {
     if (newAccountName.trim()) {
       onCreateAccount(newAccountName.trim());

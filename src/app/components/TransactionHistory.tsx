@@ -1,21 +1,37 @@
+/**
+ * @fileoverview This component displays a table of transaction history for a bank account.
+ * It includes details such as the date, description, amount, interest, and balance for each transaction.
+ */
+
 "use client";
 
 import { useState, useEffect } from "react";
 import type { Transaction } from "../../types/bank";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
 
+/**
+ * Props for the TransactionHistory component.
+ *
+ * @typedef {Object} TransactionHistoryProps
+ * @property {number} interestRate - The annual interest rate for the account.
+ * @property {Transaction[]} transactions - The list of transactions for the account.
+ */
 interface TransactionHistoryProps {
   interestRate: number;
   transactions: Transaction[];
 }
 
+/**
+ * A component that displays a table of transaction history for a bank account.
+ *
+ * @param {TransactionHistoryProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the transaction history table.
+ */
 export default function TransactionHistory({
   interestRate,
   transactions,
 }: TransactionHistoryProps) {
   const [currentDate, setCurrentDate] = useState("");
-
-  console.log("Now rendering TransactionHistory", transactions);
 
   useEffect(() => {
     // Precompute the current date to avoid hydration mismatch
@@ -34,6 +50,12 @@ export default function TransactionHistory({
     );
   }, []);
 
+  /**
+   * Formats a number as currency.
+   *
+   * @param {number | undefined | null} amount - The amount to format.
+   * @returns {string} The formatted currency string.
+   */
   const formatCurrency = (amount: number | undefined | null) => {
     if (amount === undefined || amount === null || isNaN(amount)) {
       return new Intl.NumberFormat("en-US", {
@@ -49,6 +71,12 @@ export default function TransactionHistory({
     }).format(amount);
   };
 
+  /**
+   * Formats an ISO date string into a human-readable date and time.
+   *
+   * @param {string} isoString - The ISO date string to format.
+   * @returns {string} The formatted date and time string.
+   */
   const formatDateTime = (isoString: string) => {
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",

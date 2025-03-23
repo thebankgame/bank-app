@@ -1,11 +1,30 @@
+/**
+ * @fileoverview This component provides a reusable card layout for displaying
+ * dashboard content. It supports an optional title and custom content.
+ */
+
 "use client";
 
+/**
+ * Props for the DashboardCard component.
+ *
+ * @typedef {Object} DashboardCardProps
+ * @property {string} [title] - The optional title of the card.
+ * @property {React.ReactNode} children - The content to display inside the card.
+ * @property {string} [className] - Additional CSS classes for the card.
+ */
 interface DashboardCardProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
 }
 
+/**
+ * A reusable card component for displaying dashboard content.
+ *
+ * @param {DashboardCardProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the dashboard card.
+ */
 export default function DashboardCard({
   title,
   children,

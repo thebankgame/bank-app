@@ -1,3 +1,9 @@
+/**
+ * @fileoverview This component visualizes the growth of a balance over time
+ * using a line chart. It calculates and displays projected balances based on
+ * the provided initial balance and interest rate.
+ */
+
 "use client";
 
 import {
@@ -23,16 +29,30 @@ ChartJS.register(
   Legend
 );
 
+/**
+ * Props for the CompoundInterestChart component.
+ *
+ * @typedef {Object} CompoundInterestChartProps
+ * @property {number | undefined} balance - The initial balance to simulate.
+ * @property {number | undefined} interestRate - The annual interest rate to simulate.
+ */
 interface CompoundInterestChartProps {
   balance: number | undefined;
   interestRate: number | undefined;
 }
 
+/**
+ * A component that visualizes the growth of a balance over time using a line chart.
+ *
+ * @param {CompoundInterestChartProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the compound interest chart.
+ */
 export default function CompoundInterestChart({
   balance = 0,
   interestRate = 0,
 }: CompoundInterestChartProps) {
-console.log("CompoundInterestChart props:", { balance, interestRate });
+  console.log("CompoundInterestChart props:", { balance, interestRate });
+
   const years = 5;
   const dataPoints = Array.from({ length: years * 12 + 1 }, (_, i) => {
     const month = i;
