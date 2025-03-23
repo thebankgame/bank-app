@@ -63,16 +63,19 @@ export default function InterestRateSimulator({
     datasets: [],
   });
 
+  // TODO: remove useEffect - unnecessary here
   // Update balance when initialBalance changes
   useEffect(() => {
     setBalance(initialBalance || 0);
   }, [initialBalance]);
 
+  // TODO: remove useEffect - unnecessary here
   // Update balance when initialBalance changes
   useEffect(() => {
     setInterestRate(initialRate || 0);
   }, [initialRate]);
 
+  // TODO: remove useEffect - unnecessary here
   useEffect(() => {
     // Generate data points for 5 years
     const years = 5;

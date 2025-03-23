@@ -260,6 +260,8 @@ export default function DashboardContent({
             session={session}
             account={selectedAccount}
             balance={currentBalance}
+            interestRate={currentRate}
+            // inputRate={currentRate}
             latestTransaction={transactions[transactions.length - 1]}
             onInterestRateChange={handleInterestRateChange}
             onCreateNewTransaction={handleNewTransaction}

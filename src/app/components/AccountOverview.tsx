@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createNewTransaction } from "@/lib/actions";
 import { BankAccount, Transaction } from "@/types/bank";
 import { Session } from "next-auth";
@@ -11,6 +11,8 @@ interface AccountOverviewProps {
   session: Session;
   account: BankAccount | null;
   balance: number | undefined;
+  interestRate: number | undefined;
+  // accountRate: number | undefined;
   latestTransaction: Transaction | null;
   onInterestRateChange: (newRate: number) => void;
   onCreateNewTransaction: (newTransaction: Transaction) => void;
@@ -20,15 +22,26 @@ export default function AccountOverview({
   session,
   account,
   balance,
+  interestRate,
+  // accountRate,
   latestTransaction,
   onInterestRateChange,
   onCreateNewTransaction: onTransactionsChange,
 }: AccountOverviewProps) {
   const [isRateChanging, setIsRateChanging] = useState(false);
-  const [inputRate, setInputRate] = useState(account?.interestRate) || 0;
-  const [currentRate, setCurrentRate] = useState(account?.interestRate) || 0;
+  const [inputRate, setInputRate] = useState(interestRate) || 0;
+  // const [currentRate, setCurrentRate] = useState(account?.interestRate) || 0;
 
+  console.log("rendering account overview for balance: ", balance);
+  console.log("rendering account overview for interestRate: ", interestRate);
+  console.log("rendering account overview for inputRate: ", inputRate);
   console.log("rendering account overview for account: ", account);
+
+    // TODO: remove useEffect - unnecessary here
+    // Update balance when initialBalance changes
+    useEffect(() => {
+      setInputRate(interestRate || 0);
+    }, [interestRate]);
 
   const handleRateChange = async () => {
     console.log("handling rate change to:", inputRate);
@@ -48,8 +61,6 @@ export default function AccountOverview({
       return;
     }
 
-    // const lastTransaction =
-    //   account.transactions[account.transactions.length - 1];
     const accumulatedInterest = calculateInterestSinceLastTransaction(
       account.interestRate,
       account.transactions
@@ -57,10 +68,11 @@ export default function AccountOverview({
 
     const transaction: Omit<
         Transaction,
-        "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
+        "transactionId" | "runningBalance" | "accumulatedInterest"
       > = {
       type: "deposit",
       amount: 0,
+      timestamp: new Date().toISOString(),
       description: `Interest Rate changed from ${account?.interestRate.toFixed(
         1
       )}% to ${inputRate?.toFixed(1)}%`,
@@ -85,14 +97,14 @@ export default function AccountOverview({
       handleInterestRateChange(inputRate);
     }
 
-    setCurrentRate(inputRate);
+    // setCurrentRate(inputRate);
     setIsRateChanging(false);
   };
 
   const handleInterestRateChange = async (newRate: number) => {
     try {
       const response = await fetch(
-        `/api/accounts/${account.accountId}/interestRate`,
+        `/api/accounts/${account?.accountId}/interestRate`,
         {
           method: "POST",
           headers: {
@@ -134,13 +146,13 @@ export default function AccountOverview({
           Interest Rate
         </h3>
         <p className="text-2xl font-bold text-purple-900">
-          {currentRate.toFixed(1)}%
+          {(interestRate ?? 0).toFixed(1)}%
         </p>
         {isRateChanging ? (
           <div className="flex gap-2 items-center">
             <input
               type="number"
-              placeholder={account.interestRate.toFixed(1)}
+              placeholder={(interestRate ?? 0).toFixed(1) || ""}
               step="0.1"
               min="0"
               max="100"

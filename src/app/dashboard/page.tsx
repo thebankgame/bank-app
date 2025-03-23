@@ -6,33 +6,6 @@ import { BankAccount, UserBankData } from "@/types/bank";
 import { getAccounts } from "../api/services/dynamoDBService";
 import SignOutButton from "../components/SignOutButton";
 
-function generateAccountNumber(): string {
-  return Array.from({ length: 4 }, () =>
-    Math.floor(Math.random() * 10000)
-      .toString()
-      .padStart(4, "0")
-  ).join("-");
-}
-
-// This would come from your database in a real application
-const createInitialData = (): UserBankData => {
-  const initialAccountId = Date.now().toString();
-  const initialAccount: BankAccount = {
-    userId: "",
-    accountId: initialAccountId,
-    name: "Playground",
-    accountNumber: generateAccountNumber(),
-    balance: 0,
-    interestRate: 2.5,
-    transactions: [],
-    createdAt: new Date().toISOString(),
-  };
-
-  return {
-    accounts: [initialAccount],
-    selectedAccountId: initialAccountId,
-  };
-};
 
 // Server component
 export default async function DashboardPage() {
