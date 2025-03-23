@@ -1,8 +1,6 @@
 import type { Transaction } from "../types/bank";
 
-export function calculateInterestSinceLastTransaction(
-  transactions: Transaction[]
-) {
+export function calculateInterestSinceLastTransaction( interestRate: number, transactions: Transaction[]) {
   const sortedTransactions = [...transactions].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
@@ -30,7 +28,7 @@ export function calculateInterestSinceLastTransaction(
 
   // Calculate interest since last transaction using the stored running balance
   const interestSinceLastTransaction =
-    lastTransaction.runningBalance * (0.025 / 365) * daysSinceLastTransaction;
+    lastTransaction.runningBalance * ((interestRate/100) / 365) * daysSinceLastTransaction;
 
   // New balance is last transaction's running balance plus any new interest
   const newBalance = lastTransaction.runningBalance + interestSinceLastTransaction;

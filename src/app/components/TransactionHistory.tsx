@@ -5,13 +5,17 @@ import type { Transaction } from "../../types/bank";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
 
 interface TransactionHistoryProps {
+  interestRate: number;
   transactions: Transaction[];
 }
 
 export default function TransactionHistory({
+  interestRate,
   transactions,
 }: TransactionHistoryProps) {
   const [currentDate, setCurrentDate] = useState("");
+
+  console.log("Now rendering TransactionHistory", transactions);
 
   useEffect(() => {
     // Precompute the current date to avoid hydration mismatch
@@ -91,6 +95,7 @@ export default function TransactionHistory({
             // Calculate interest since last transaction using shared function
             const { interestSinceLastTransaction } =
               calculateInterestSinceLastTransaction(
+                interestRate,
                 sortedTransactions
               );
 

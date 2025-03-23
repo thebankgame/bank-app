@@ -38,23 +38,6 @@ const createInitialData = (): UserBankData => {
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
-  // Debug logging
-  // // console.log(
-  //   "Dashboard Page - Session data:",
-  //   JSON.stringify(
-  //     {
-  //       hasSession: !!session,
-  //       hasUser: !!session?.user,
-  //       userId: session?.user?.id,
-  //       hasIdToken: !!session?.idToken,
-  //       email: session?.user?.email,
-  //       timestamp: new Date().toISOString(),
-  //     },
-  //     null,
-  //     2
-  //   )
-  // );
-
   if (!session?.user?.id) {
     console.error("No user ID in session");
     redirect("/");

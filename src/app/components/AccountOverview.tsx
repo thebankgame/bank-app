@@ -1,143 +1,215 @@
 "use client";
 
-import type { BankAccount, Transaction } from "../../types/bank";
 import { useState } from "react";
+import { createNewTransaction } from "@/lib/actions";
+import { BankAccount, Transaction } from "@/types/bank";
+import { Session } from "next-auth";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
+import router from "next/router";
 
 interface AccountOverviewProps {
+  session: Session;
   account: BankAccount;
+  onInterestRateChange: (newRate: number) => void;
+  onTransactionsChange: (newTransaction : Transaction) => void;
 }
 
-export default function AccountOverview({ account }: AccountOverviewProps) {
-  const { newBalance } = calculateInterestSinceLastTransaction(
-    account.transactions
-  );
+export default function AccountOverview({ session, account, onInterestRateChange, onTransactionsChange }: AccountOverviewProps) {
 
-  const [showSlider, setShowSlider] = useState(false); // State to toggle slider visibility
   const [isRateChanging, setIsRateChanging] = useState(false);
-  const [newRate, setNewRate] = useState(account.interestRate);
+  const [inputRate, setInputRate] =
+    useState(account?.interestRate) || 0;
+    const [currentRate, setCurrentRate] =
+    useState(account?.interestRate) || 0;
 
-  function calculateAccumulatedInterest(
-  prevTransaction: Transaction | null,
-  interestRate: number
-): number {
-  if (!prevTransaction) return 0;
-
-  const daysBetweenTransactions =
-    (new Date().getTime() -
-      new Date(prevTransaction.timestamp).getTime()) /
-    (1000 * 60 * 60 * 24);
-
-  return prevTransaction.runningBalance * (interestRate / 365) * daysBetweenTransactions;
-}
-
-
-  const handleRateChange = () => {
-    if (newRate === account.interestRate) {
-      setIsRateChanging(false);
+  const handleRateChange = async () => {
+    console.log("handling rate change to:", inputRate);
+    if (!account) {
+      console.error("No account selected");
+      return;
     }
 
-    const lastTransaction =
-      account.transactions[account.transactions.length - 1];
-    const accumulatedInterest = calculateAccumulatedInterest(
-      lastTransaction,
-      account.interestRate
+    if (inputRate === undefined) {
+      console.error("No inputRate provided");
+      return;
+    }
+
+    if (inputRate === account.interestRate) {
+      console.log("Rate unchanged");
+      setIsRateChanging(false);
+      return;
+    }
+
+    // const lastTransaction =
+    //   account.transactions[account.transactions.length - 1];
+    const accumulatedInterest = calculateInterestSinceLastTransaction(
+      account.interestRate,
+      account.transactions,
     );
 
-
-    const newTransaction = {
-      date: new Date().toISOString(),
-      description: `Interest Rate changed from ${account.interestRate.toFixed(
-        1
-      )}% to ${newRate.toFixed(1)}%`,
+    const transaction: Transaction = {
+      transactionId: crypto.randomUUID(), // Generate a unique ID for the transaction
+      type: "deposit",
       amount: 0,
-      interest: accumulatedInterest,
-      runningBalance:
-        (lastTransaction?.runningBalance || 0) + accumulatedInterest,
+      description: `Interest Rate changed from ${account?.interestRate.toFixed(
+        1
+      )}% to ${inputRate?.toFixed(1)}%`,
+      timestamp: new Date().toISOString(),
+      runningBalance: 0, // Placeholder, to be updated later
+      accumulatedInterest: 0, // Placeholder, to be updated later
     };
 
+    const newTransaction = await createNewTransaction(
+      session,
+      account,
+      transaction
+    );
 
-    //TODO: commit this to the data store
-    account.interestRate = newRate;
+    if (!newTransaction) {
+      console.error("Unable to create new transaction");
+      return;
+    }
+    onTransactionsChange(newTransaction);
+
+    console.log("about to update interest rate to", inputRate);
+
+    if (inputRate !== undefined) {
+      console.log("Updating interest rate to", inputRate);
+      handleInterestRateChange(inputRate);
+    }
+
+    setCurrentRate(inputRate);
+    setIsRateChanging(false);
   };
 
-  const toggleSlider = () => {
-    setShowSlider((prev) => !prev);
-  };
+
+    const handleInterestRateChange = async (newRate: number) => {
+  
+      try {
+        const response = await fetch(
+          `/api/accounts/${account.accountId}/interestRate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.idToken}`,
+            },
+            body: JSON.stringify({ interestRate: Number(newRate) }),
+          }
+        );
+  
+        if (response.status === 401) {
+          // Token expired, redirect to sign in
+          router.push("/");
+          return;
+        }
+  
+        if (!response.ok) {
+          throw new Error("Failed to update interest rate");
+        }
+
+        onInterestRateChange(newRate);
+  
+      } catch (error) {
+        console.error("Error updating interst rate:", error);
+      }
+    };
+  
+  
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium text-gray-500">Account Number</h3>
-        <p className="mt-1 text-lg font-semibold">{account.accountNumber}</p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="bg-green-100 rounded-lg shadow-md p-4">
+        <h3 className="text-sm font-medium text-green-800 mb-1">
+          Current Balance
+        </h3>
+        <p className="text-2xl font-bold text-green-900">
+          ${(account.balance ?? 0).toFixed(2)}
+        </p>
       </div>
-      <div>
-        <h3 className="text-sm font-medium text-gray-500">Interest Rate</h3>
-        <div className="flex items-center gap-4">
-          <p className="text-lg font-semibold">
-            {account.interestRate.toFixed(2)}%
-          </p>
-          {isRateChanging ? (
-            <div className="flex gap-2 items-center">
-              <input
-                type="number"
-                placeholder="{newRate}"
-                step="0.1"
-                min="0"
-                max="100"
-                value={newRate}
-                onChange={(e) => setNewRate(Number(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-              />
-              <button
-                onClick={handleRateChange}
-                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
-              >
-                Change
-              </button>
-              <button
-                onClick={() => setIsRateChanging(false)}
-                className="px-4 py-2 text-gray-700 hover:text-gray-900 focus:outline-none"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
+      <div className="bg-purple-100 rounded-lg shadow-md p-4">
+        <h3 className="text-sm font-medium text-purple-800 mb-1">
+          Interest Rate
+        </h3>
+        <p className="text-2xl font-bold text-purple-900">
+          {currentRate.toFixed(1)}%
+        </p>
+        {isRateChanging ? (
+          <div className="flex gap-2 items-center">
+            <input
+              type="number"
+              placeholder={account.interestRate.toFixed(1)}
+              step="0.1"
+              min="0"
+              max="100"
+              value={inputRate}
+              onChange={(e) => setInputRate(Number(e.target.value))}
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+            />
             <button
-              onClick={() => setIsRateChanging(true)}
+              onClick={handleRateChange}
               className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
             >
               Change
             </button>
-          )}{" "}
-        </div>
+            <button
+              onClick={() => setIsRateChanging(false)}
+              className="px-4 py-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsRateChanging(true)}
+            className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+          >
+            Change
+          </button>
+        )}{" "}
       </div>
-      <div>
-        <h3 className="text-sm font-medium text-gray-500">Current Balance</h3>
-        <p className="mt-1 text-lg font-semibold">${newBalance.toFixed(2)}</p>
+      <div className="bg-orange-100 rounded-lg shadow-md p-4">
+        <h3 className="text-sm font-medium text-orange-800 mb-1">
+          Last Transaction
+          {account.transactions.length > 0 && (
+            <span className="font-normal text-orange-700">
+              {" "}
+              (
+              {new Date(
+                account.transactions[
+                  account.transactions.length - 1
+                ].timestamp
+              ).toLocaleDateString()}
+              )
+            </span>
+          )}
+        </h3>
+        <p className="text-2xl font-bold text-orange-900">
+          {account.transactions.length > 0 ? (
+            <span
+              className={
+                account.transactions[
+                  account.transactions.length - 1
+                ].type === "deposit"
+                  ? "text-green-700"
+                  : "text-red-700"
+              }
+            >
+              {account.transactions[
+                account.transactions.length - 1
+              ].type === "deposit"
+                ? "+"
+                : "-"}
+              $
+              {account.transactions[
+                account.transactions.length - 1
+              ].amount.toFixed(2)}
+            </span>
+          ) : (
+            "No transactions"
+          )}
+        </p>
       </div>
-      {account.transactions.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-gray-500">
-            Last Transaction
-          </h3>
-          <p className="mt-1 text-lg">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-              signDisplay: "always",
-            }).format(
-              account.transactions[0].type === "withdrawal"
-                ? -account.transactions[0].amount
-                : account.transactions[0].amount
-            )}
-          </p>
-          {/* Use precomputed formattedTimestamp */}
-          <p className="text-sm text-gray-500">
-            {account.transactions[0].formattedTimestamp}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { calculateInterestSinceLastTransaction } from "../utils/interest";
 import { signOut } from "next-auth/react";
 import SignOutButton from "../components/SignOutButton";
+import { createNewTransaction } from "@/lib/actions";
 
 interface DashboardContentProps {
   session: Session;
@@ -61,10 +62,11 @@ export default function DashboardContent({
     accounts.find((account) => account.accountId === selectedAccountId) ||
       accounts[0]
   );
-
-  const [isRateChanging, setIsRateChanging] = useState(false);
   const [currentRate, setCurrentRate] =
     useState(selectedAccount?.interestRate) || 0;
+  const [transactions, setTransactions] = useState<Transaction[]>(
+    selectedAccount?.transactions || []
+  );
 
   const refreshAccounts = async () => {
     setIsLoading(true);
@@ -92,6 +94,7 @@ export default function DashboardContent({
       if (data.length > 0 && !selectedAccountId) {
         setSelectedAccountId(data[0].accountId);
         setSelectedAccount(data[0]);
+        setCurrentRate(data[0].interestRate);
       }
     } catch (error) {
       console.error("Error fetching accounts:", error);
@@ -106,89 +109,6 @@ export default function DashboardContent({
   useEffect(() => {
     refreshAccounts();
   }, [session.idToken]);
-
-  const handleNewTransaction = async (transaction: {
-    type: "deposit" | "withdrawal";
-    amount: number;
-    description: string;
-  }) => {
-    if (!selectedAccount) return;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `/api/accounts/${selectedAccount.accountId}/transactions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.idToken}`,
-          },
-          body: JSON.stringify(transaction),
-        }
-      );
-
-      if (response.status === 401) {
-        // Token expired, redirect to sign in
-        router.push("/");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to create transaction");
-      }
-
-      const updatedAccount: BankAccount = await response.json();
-      setSelectedAccount(updatedAccount);
-      const { newBalance } = calculateInterestSinceLastTransaction(
-        updatedAccount.transactions
-      );
-    } catch (error) {
-      console.error("Error creating transaction:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to create transaction"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleInterestRateChange = async (currentRate: number) => {
-    if (!selectedAccount) return;
-
-    try {
-      const response = await fetch(
-        `/api/accounts/${selectedAccount.accountId}/interestRate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.idToken}`,
-          },
-          body: JSON.stringify({ interestRate: Number(currentRate) }),
-        }
-      );
-
-      if (response.status === 401) {
-        // Token expired, redirect to sign in
-        router.push("/");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to update interest rate");
-      }
-
-      await refreshAccounts();
-    } catch (error) {
-      console.error("Error updating interst rate:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to update interest rate"
-      );
-    }
-  };
 
   const handleCreateAccount = async (name: string) => {
     try {
@@ -206,78 +126,55 @@ export default function DashboardContent({
       setAccounts((current) => [...current, newAccount]);
       setSelectedAccountId(newAccount.accountId);
       setSelectedAccount(newAccount);
-      setCurrentRate(newAccount.interestRate);
+      // setCurrentRate(newAccount.interestRate);
     } catch (error) {
       console.error("Error creating account:", error);
     }
   };
 
-  function calculateAccumulatedInterest(
-    prevTransaction: Transaction,
-    interestRate: number
-  ): number {
-    if (!prevTransaction || !interestRate) return 0;
-
-    const daysBetweenTransactions =
-      (new Date().getTime() - new Date(prevTransaction.timestamp).getTime()) /
-      (1000 * 60 * 60 * 24);
-
-    return (
-      prevTransaction.runningBalance *
-      (interestRate / 365) *
-      daysBetweenTransactions
-    );
+  async function handleInterestRateChange(newRate: number) {
+    console.log("about to handleInterstRateChange to ", newRate);
+    setCurrentRate(newRate);
+    // await refreshAccounts();
   }
 
-  const handleRateChange = () => {
-    console.log("handling rate change to:", currentRate);
-    if (!selectedAccount) {
-      console.error("No account selected");
-      return;
-    }
+  async function handleNewTransaction(newTransaction: Transaction) {
+    console.log("about to handleTransactionsChange");
 
-    if (currentRate === undefined) {
-      console.error("No currentRate provided");
-      return;
-    }
+    if (!selectedAccount) return;
 
-    if (currentRate === selectedAccount.interestRate) {
-      console.log("Rate unchanged");
-      setIsRateChanging(false);
-      return;
-    }
+    setIsLoading(true);
 
-    const lastTransaction =
-      selectedAccount.transactions[selectedAccount.transactions.length - 1];
-    const accumulatedInterest = calculateAccumulatedInterest(
-      lastTransaction,
-      selectedAccount.interestRate
-    );
 
-    const newTransaction: {
-      type: "deposit" | "withdrawal";
-      amount: number;
-      description: string;
-    } = {
-      type: "deposit",
-      amount: 0,
-      description: `Interest Rate changed from ${selectedAccount?.interestRate.toFixed(
-        1
-      )}% to ${currentRate?.toFixed(1)}%`,
-    };
+    setTransactions((prev) => [...prev, newTransaction]);
 
-    handleNewTransaction(newTransaction);
+    // setSelectedAccount(updatedAccount);
+    // const { newBalance } = calculateInterestSinceLastTransaction(
+    //   updatedAccount.balance,
+    //   updatedAccount.transactions
+    // );
 
-    console.log("about to update interest rate to", currentRate);
+    // await refreshAccounts();
+    // selectedAccount?.transactions.push(newTransaction);
+    setIsLoading(false);
+  }
 
-    if (currentRate !== undefined) {
-      console.log("Updating interest rate to", currentRate);
-      handleInterestRateChange(currentRate);
-      // selectedAccount.interestRate = currentRate;
-    }
+  // function calculateAccumulatedInterest(
+  //   prevTransaction: Transaction,
+  //   interestRate: number
+  // ): number {
+  //   if (!prevTransaction || !interestRate) return 0;
 
-    setIsRateChanging(false);
-  };
+  //   const daysBetweenTransactions =
+  //     (new Date().getTime() - new Date(prevTransaction.timestamp).getTime()) /
+  //     (1000 * 60 * 60 * 24);
+
+  //   return (
+  //     prevTransaction.runningBalance *
+  //     (interestRate / 365) *
+  //     daysBetweenTransactions
+  //   );
+  // }
 
   if (error) {
     return <ErrorDisplay error={error} onRetry={refreshAccounts} />;
@@ -312,7 +209,7 @@ export default function DashboardContent({
                 (acc) => acc.accountId === e.target.value
               );
               setSelectedAccount(account || null);
-              setCurrentRate(account?.interestRate || 0);
+              // setCurrentRate(account?.interestRate || 0);
             }}
             className="text-lg text-gray-700 bg-transparent border-none focus:ring-0 p-0"
           >
@@ -333,117 +230,35 @@ export default function DashboardContent({
           </button>
         </div>
 
-        {selectedAccount && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-green-100 rounded-lg shadow-md p-4">
-                <h3 className="text-sm font-medium text-green-800 mb-1">
-                  Current Balance
-                </h3>
-                <p className="text-2xl font-bold text-green-900">
-                  {(selectedAccount.balance ?? 0).toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-purple-100 rounded-lg shadow-md p-4">
-                <h3 className="text-sm font-medium text-purple-800 mb-1">
-                  Interest Rate
-                </h3>
-                <p className="text-2xl font-bold text-purple-900">
-                  {selectedAccount.interestRate.toFixed(1)}%
-                </p>
-                {isRateChanging ? (
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="number"
-                      placeholder={selectedAccount.interestRate.toFixed(1)}
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      value={currentRate}
-                      onChange={(e) => setCurrentRate(Number(e.target.value))}
-                      className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    />
-                    <button
-                      onClick={handleRateChange}
-                      className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
-                    >
-                      Change
-                    </button>
-                    <button
-                      onClick={() => setIsRateChanging(false)}
-                      className="px-4 py-2 text-gray-700 hover:text-gray-900 focus:outline-none"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setIsRateChanging(true)}
-                    className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
-                  >
-                    Change
-                  </button>
-                )}{" "}
-              </div>
-              <div className="bg-orange-100 rounded-lg shadow-md p-4">
-                <h3 className="text-sm font-medium text-orange-800 mb-1">
-                  Last Transaction
-                  {selectedAccount.transactions.length > 0 && (
-                    <span className="font-normal text-orange-700">
-                      {" "}
-                      (
-                      {new Date(
-                        selectedAccount.transactions[
-                          selectedAccount.transactions.length - 1
-                        ].timestamp
-                      ).toLocaleDateString()}
-                      )
-                    </span>
-                  )}
-                </h3>
-                <p className="text-2xl font-bold text-orange-900">
-                  {selectedAccount.transactions.length > 0 ? (
-                    <span
-                      className={
-                        selectedAccount.transactions[
-                          selectedAccount.transactions.length - 1
-                        ].type === "deposit"
-                          ? "text-green-700"
-                          : "text-red-700"
-                      }
-                    >
-                      {selectedAccount.transactions[
-                        selectedAccount.transactions.length - 1
-                      ].type === "deposit"
-                        ? "+"
-                        : "-"}
-                      $
-                      {selectedAccount.transactions[
-                        selectedAccount.transactions.length - 1
-                      ].amount.toFixed(2)}
-                    </span>
-                  ) : (
-                    "No transactions"
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <DashboardCard title="New Transaction">
-                <NewTransactionForm
-                  onSubmit={handleNewTransaction}
-                  isLoading={isLoading}
-                />
-              </DashboardCard>
-            </div>
-          </>
-        )}
-
         {selectedAccount ? (
+          <AccountOverview
+            session={session}
+            account={selectedAccount}
+            onInterestRateChange={handleInterestRateChange}
+            onTransactionsChange={handleNewTransaction}
+          />
+        ) : null}
+
+        <div className="mb-8">
+          <DashboardCard title="New Transaction">
+            {selectedAccount && (
+              <NewTransactionForm
+                session={session}
+                account={selectedAccount}
+                onSubmit={handleNewTransaction}
+                isLoading={isLoading}
+              />
+            )}
+          </DashboardCard>
+        </div>
+
+        {selectedAccount && currentRate ? (
           <div className="space-y-8">
             <DashboardCard title="Transaction History">
-              <TransactionHistory transactions={selectedAccount.transactions} />
+              <TransactionHistory
+                interestRate={currentRate}
+                transactions={transactions}
+              />
             </DashboardCard>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -451,14 +266,14 @@ export default function DashboardContent({
                 <div className="h-[300px]">
                   <CompoundInterestChart
                     balance={selectedAccount.balance ?? 0}
-                    interestRate={selectedAccount.interestRate}
+                    interestRate={currentRate}
                   />
                 </div>
               </DashboardCard>
               <DashboardCard title="Interest Rate Simulator">
                 <InterestRateSimulator
                   initialBalance={selectedAccount.balance ?? 0}
-                  initialRate={selectedAccount.interestRate}
+                  initialRate={currentRate}
                 />
               </DashboardCard>
             </div>

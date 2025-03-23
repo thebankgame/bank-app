@@ -1,17 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import type { Transaction } from "../../types/bank";
+import { createNewTransaction } from "@/lib/actions";
+import { BankAccount } from "@/types/bank";
+import { Session } from "next-auth";
 
 interface NewTransactionFormProps {
-  onSubmit: (transaction: {
-    description: string;
-    amount: number;
-    type: "deposit" | "withdrawal";
-  }) => void;
+  session: Session;
+  account: BankAccount;
+  onSubmit: (transaction: Transaction) => void; // Updated to use the formal Transaction type
   isLoading?: boolean;
 }
 
 export default function NewTransactionForm({
+  session,
+  account,
   onSubmit,
   isLoading = false,
 }: NewTransactionFormProps) {
@@ -19,15 +23,33 @@ export default function NewTransactionForm({
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"deposit" | "withdrawal">("withdrawal");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numericAmount = parseFloat(amount);
     if (!isNaN(numericAmount) && description.trim()) {
-      onSubmit({
-        description: description.trim(),
-        amount: numericAmount,
+      const transaction: Transaction = {
+        transactionId: crypto.randomUUID(), // Generate a unique ID for the transaction
         type,
-      });
+        amount: numericAmount,
+        description: description.trim(),
+        timestamp: new Date().toISOString(),
+        runningBalance: 0, // Placeholder, to be updated later
+        accumulatedInterest: 0, // Placeholder, to be updated later
+      };
+
+      const newTransaction = await createNewTransaction(
+        session,
+        account,
+        transaction
+      );
+
+      if (!newTransaction) {
+        console.error("Unable to create new transaction");
+        return;
+      }
+  
+
+      onSubmit(transaction);
       // Reset form
       setDescription("");
       setAmount("");
