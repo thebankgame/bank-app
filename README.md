@@ -105,9 +105,7 @@ src/
 │   ├── layout.tsx          # Root layout for the application
 │   └── page.tsx            # Landing page
 ├── lib/                    # Shared libraries and actions
-├── services/               # Service functions for external integrations
 ├── types/                  # TypeScript type definitions
-└── utils/                  # Additional utility functions
 ```
 
 ## Key Technologies
