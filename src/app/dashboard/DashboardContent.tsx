@@ -202,6 +202,7 @@ export default function DashboardContent({
       setSelectedAccountId(newAccount.accountId);
       setSelectedAccount(newAccount);
       setCurrentRate(newAccount.interestRate);
+      setCurrentBalance(newAccount.balance);
       setTransactions(newAccount.transactions);
       return newAccount;
     } catch (error) {
