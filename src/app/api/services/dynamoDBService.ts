@@ -1,3 +1,9 @@
+/**
+ * @fileoverview This service provides functions to interact with AWS DynamoDB
+ * for managing bank accounts and transactions. It includes methods for creating,
+ * retrieving, and updating accounts and transactions.
+ */
+
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -15,9 +21,11 @@ import { BankAccount, Transaction } from "@/types/bank";
 import { v4 as uuidv4 } from "uuid";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { time } from "console";
 import { calculateInterestSinceLastTransaction } from "@/app/utils/interest";
 
+/**
+ * Custom error class for handling token expiration errors.
+ */
 export class TokenExpiredError extends Error {
   constructor(message: string) {
     super(message);
@@ -25,6 +33,13 @@ export class TokenExpiredError extends Error {
   }
 }
 
+/**
+ * Creates a DynamoDB client with temporary credentials obtained from AWS Cognito.
+ *
+ * @async
+ * @returns {Promise<{ docClient: DynamoDBDocumentClient; cognitoIdentityId: string }>} The DynamoDB document client and Cognito identity ID.
+ * @throws {Error} If the access token is missing or expired, or if credentials cannot be obtained.
+ */
 export async function createDynamoDBClient() {
   const session = await getServerSession(authOptions);
   if (!session?.accessToken) {
@@ -96,6 +111,14 @@ export async function createDynamoDBClient() {
   };
 }
 
+/**
+ * Retrieves all bank accounts for the authenticated user.
+ *
+ * @async
+ * @returns {Promise<BankAccount[]>} A list of bank accounts.
+ * @throws {TokenExpiredError} If the user's token has expired.
+ * @throws {Error} If the accounts cannot be fetched.
+ */
 export async function getAccounts(): Promise<BankAccount[]> {
   try {
     const { docClient, cognitoIdentityId } = await createDynamoDBClient();
@@ -119,6 +142,15 @@ export async function getAccounts(): Promise<BankAccount[]> {
   }
 }
 
+/**
+ * Retrieves a specific bank account by its ID.
+ *
+ * @async
+ * @param {string} accountId - The ID of the account to retrieve.
+ * @returns {Promise<BankAccount | null>} The bank account or null if not found.
+ * @throws {TokenExpiredError} If the user's token has expired.
+ * @throws {Error} If the account cannot be fetched.
+ */
 export async function getAccount(
   accountId: string
 ): Promise<BankAccount | null> {
@@ -157,6 +189,15 @@ export async function getAccount(
   }
 }
 
+/**
+ * Creates a new bank account for the authenticated user.
+ *
+ * @async
+ * @param {string} name - The name of the new account.
+ * @returns {Promise<BankAccount>} The newly created bank account.
+ * @throws {TokenExpiredError} If the user's token has expired.
+ * @throws {Error} If the account cannot be created.
+ */
 export async function createAccount(name: string): Promise<BankAccount> {
   try {
     const { docClient, cognitoIdentityId } = await createDynamoDBClient();
@@ -191,6 +232,16 @@ export async function createAccount(name: string): Promise<BankAccount> {
   }
 }
 
+/**
+ * Updates the interest rate for a specific bank account.
+ *
+ * @async
+ * @param {string} accountId - The ID of the account to update.
+ * @param {number} newInterestRate - The new interest rate to set.
+ * @returns {Promise<BankAccount>} The updated bank account.
+ * @throws {TokenExpiredError} If the user's token has expired.
+ * @throws {Error} If the interest rate cannot be updated.
+ */
 export async function updateInterestRate(
   accountId: string,
   newInterestRate: number
@@ -222,6 +273,17 @@ export async function updateInterestRate(
   }
 }
 
+/**
+ * Adds a new transaction to a specific bank account.
+ *
+ * @async
+ * @param {string} accountId - The ID of the account to update.
+ * @param {Omit<Transaction, "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest">} transaction - The transaction details.
+ * @param {string} transactionTimestamp - The timestamp of the transaction.
+ * @returns {Promise<BankAccount>} The updated bank account.
+ * @throws {TokenExpiredError} If the user's token has expired.
+ * @throws {Error} If the transaction cannot be added.
+ */
 export async function addTransaction(
   accountId: string,
   transaction: Omit<
@@ -297,6 +359,11 @@ export async function addTransaction(
   }
 }
 
+/**
+ * Generates a random account number in the format XXXX-XXXX-XXXX-XXXX.
+ *
+ * @returns {string} The generated account number.
+ */
 function generateAccountNumber(): string {
   return Array.from({ length: 4 }, () =>
     Math.floor(Math.random() * 10000)

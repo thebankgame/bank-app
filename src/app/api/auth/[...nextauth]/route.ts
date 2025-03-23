@@ -1,6 +1,16 @@
+/**
+ * @fileoverview This file configures NextAuth for authentication using AWS Cognito.
+ * It defines providers, callbacks, and session handling for the application.
+ */
+
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CognitoProvider from "next-auth/providers/cognito";
 
+/**
+ * The authentication options for NextAuth.
+ *
+ * @type {NextAuthOptions}
+ */
 export const authOptions: NextAuthOptions = {
   providers: [
     CognitoProvider({

@@ -1,6 +1,10 @@
+/**
+ * @fileoverview This API route handles bank-related operations, including
+ * retrieving transactions and creating new transactions for a user.
+ */
+
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import CognitoProvider from 'next-auth/providers/cognito';
 import { Transaction } from '@/types/bank';
 
 // In a real app, you'd use a database here.
@@ -14,6 +18,13 @@ let bankData: { [userId: string]: BankState } = {};
 
 const ANNUAL_INTEREST_RATE = 0.025; // 2.5% annual interest rate
 
+/**
+ * Calculates the accumulated interest since the last transaction.
+ *
+ * @param {Transaction | null} prevTransaction - The previous transaction.
+ * @param {string} currentTimestamp - The current timestamp.
+ * @returns {number} The accumulated interest.
+ */
 function calculateAccumulatedInterest(
   prevTransaction: Transaction | null,
   currentTimestamp: string
@@ -28,6 +39,13 @@ function calculateAccumulatedInterest(
   return prevTransaction.runningBalance * (ANNUAL_INTEREST_RATE / 365) * daysBetweenTransactions;
 }
 
+/**
+ * Handles GET requests to retrieve the user's bank transactions.
+ *
+ * @async
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<Response>} The response containing the user's transactions.
+ */
 export async function GET(request: Request) {
     const session = await getServerSession()
     if(!session){
@@ -44,6 +62,13 @@ export async function GET(request: Request) {
     return NextResponse.json(userState);
 }
 
+/**
+ * Handles POST requests to create a new transaction for the user.
+ *
+ * @async
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<Response>} The response containing the created transaction.
+ */
 export async function POST(request: Request) {
     const session = await getServerSession();
     if(!session){
