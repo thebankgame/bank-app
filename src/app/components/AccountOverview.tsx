@@ -11,6 +11,7 @@ interface AccountOverviewProps {
   session: Session;
   account: BankAccount;
   balance: number;
+  latestTransaction: Transaction | null;
   onInterestRateChange: (newRate: number) => void;
   onCreateNewTransaction: (newTransaction: Transaction) => void;
 }
@@ -19,6 +20,7 @@ export default function AccountOverview({
   session,
   account,
   balance,
+  latestTransaction,
   onInterestRateChange,
   onCreateNewTransaction: onTransactionsChange,
 }: AccountOverviewProps) {
@@ -169,35 +171,31 @@ export default function AccountOverview({
       <div className="bg-orange-100 rounded-lg shadow-md p-4">
         <h3 className="text-sm font-medium text-orange-800 mb-1">
           Last Transaction
-          {account.transactions.length > 0 && (
             <span className="font-normal text-orange-700">
               {" "}
               (
               {new Date(
-                account.transactions[account.transactions.length - 1].timestamp
+                latestTransaction?.timestamp ? new Date(latestTransaction.timestamp) : new Date()
               ).toLocaleDateString()}
               )
             </span>
-          )}
         </h3>
         <p className="text-2xl font-bold text-orange-900">
-          {account.transactions.length > 0 ? (
+          {latestTransaction ? (
             <span
               className={
-                account.transactions[account.transactions.length - 1].type ===
+                latestTransaction.type ===
                 "deposit"
                   ? "text-green-700"
                   : "text-red-700"
               }
             >
-              {account.transactions[account.transactions.length - 1].type ===
+              {latestTransaction.type ===
               "deposit"
                 ? "+"
                 : "-"}
               $
-              {account.transactions[
-                account.transactions.length - 1
-              ].amount.toFixed(2)}
+              {latestTransaction.amount.toFixed(2)}
             </span>
           ) : (
             "No transactions"

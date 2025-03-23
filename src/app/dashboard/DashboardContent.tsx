@@ -206,6 +206,7 @@ export default function DashboardContent({
             session={session}
             account={selectedAccount}
             balance={currentBalance}
+            latestTransaction={transactions[transactions.length - 1]}
             onInterestRateChange={handleInterestRateChange}
             onCreateNewTransaction={handleNewTransaction}
           />
@@ -221,7 +222,7 @@ export default function DashboardContent({
                 />
               </div>
             </DashboardCard>
-            <DashboardCard title="Interest Rate Simulator">
+            <DashboardCard title="5 Year Interest Rate Simulation">
               <InterestRateSimulator
                 initialBalance={currentBalance}
                 initialRate={currentRate}

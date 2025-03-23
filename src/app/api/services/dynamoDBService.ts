@@ -251,7 +251,13 @@ export async function addTransaction(
       sortedTransactions
     );
 
-    const lastBalance : number = sortedTransactions[0].runningBalance || 0;;
+    let lastBalance = 0;
+
+    if (sortedTransactions && sortedTransactions.length > 0) {
+      lastBalance = sortedTransactions[0].runningBalance || 0;
+    }
+
+    // const lastBalance : number = sortedTransactions[0].runningBalance || 0;
 
     // Calculate the new running balance including the new transaction
     const newTransactionAmount : number =
