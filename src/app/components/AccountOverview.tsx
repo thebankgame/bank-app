@@ -10,6 +10,12 @@ import { useEffect, useState } from "react";
 import { createNewTransaction } from "@/lib/actions";
 import { BankAccount, Transaction } from "@/types/bank";
 import { Session } from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    idToken?: string;
+  }
+}
 import router from "next/router";
 
 /**

@@ -12,7 +12,7 @@ export async function POST(request: Request, context: { params: { accountId: str
 
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !session.idToken) {
+    if (!session?.user?.email || !session.idToken) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
