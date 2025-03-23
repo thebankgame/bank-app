@@ -124,10 +124,13 @@ export default function DashboardContent({
       if (!response.ok) throw new Error("Failed to create account");
 
       const newAccount: BankAccount = await response.json();
+      console.log("New account created:", newAccount);  
       setAccounts((current) => [...current, newAccount]);
       setSelectedAccountId(newAccount.accountId);
       setSelectedAccount(newAccount);
-      // setCurrentRate(newAccount.interestRate);
+      setCurrentRate(newAccount.interestRate);
+      setTransactions(newAccount.transactions);
+      
     } catch (error) {
       console.error("Error creating account:", error);
     }
@@ -181,6 +184,9 @@ export default function DashboardContent({
                 (acc) => acc.accountId === e.target.value
               );
               setSelectedAccount(account || null);
+              setTransactions(account?.transactions || []);
+              setCurrentBalance(account?.balance || 0);
+              setCurrentRate(account?.interestRate || 0);
             }}
             className="text-lg text-gray-700 bg-transparent border-none focus:ring-0 p-0"
           >
