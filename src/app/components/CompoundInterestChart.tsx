@@ -16,7 +16,7 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
-  Filler,
+    Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { useMemo } from "react";
@@ -56,7 +56,12 @@ export default function CompoundInterestChart({
 }: CompoundInterestChartProps) {
   const years = 5;
 
-  // Move dynamic calculations to useMemo
+  console.log("balance: ", balance);
+  console.log("interestRate: ", interestRate);
+  console.log("years: ", years);
+  
+
+  // Precompute data points
   const dataPoints = useMemo(() => {
     return Array.from({ length: years * 12 + 1 }, (_, i) => {
       const month = i;
@@ -64,6 +69,39 @@ export default function CompoundInterestChart({
       return { month, amount };
     });
   }, [balance, interestRate]);
+  
+  console.log("dataPoints: ", dataPoints);
+  
+  // Precompute labels
+  const labels = useMemo(() => {
+    return dataPoints.map((point) => `Month ${point.month}`);
+  }, [dataPoints]);
+
+  console.log("labels: ", labels);
+
+  const data = useMemo(
+    () => ({
+      labels,
+      datasets: [
+        {
+          label: "Projected Balance",
+          data: dataPoints.map((point) => point.amount),
+          borderColor: "#3B82F6", // blue-500
+          backgroundColor: "rgba(59, 130, 246, 0.1)", // blue-500 with opacity
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointHoverBackgroundColor: "#3B82F6",
+          pointHoverBorderColor: "#FFFFFF",
+          pointHoverBorderWidth: 2,
+          tension: 0.4,
+          fill: true,
+        },
+      ],
+    }),
+    [labels, dataPoints]
+  );
+  console.log("3: ", labels);
 
   const options: ChartOptions<"line"> = {
     responsive: true,
@@ -134,35 +172,7 @@ export default function CompoundInterestChart({
     },
   };
 
-  const data = useMemo(
-    () => ({
-      labels: dataPoints.map((point) => {
-        const date = new Date();
-        date.setMonth(date.getMonth() + point.month);
-        return date.toLocaleDateString("en-US", {
-          month: "short",
-          year: "numeric",
-        });
-      }),
-      datasets: [
-        {
-          label: "Projected Balance",
-          data: dataPoints.map((point) => point.amount),
-          borderColor: "#3B82F6", // blue-500
-          backgroundColor: "rgba(59, 130, 246, 0.1)", // blue-500 with opacity
-          borderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          pointHoverBackgroundColor: "#3B82F6",
-          pointHoverBorderColor: "#FFFFFF",
-          pointHoverBorderWidth: 2,
-          tension: 0.4,
-          fill: true,
-        },
-      ],
-    }),
-    [dataPoints]
-  );
+  console.log("options: ", options);
 
   return (
     <div className="w-full h-full">
