@@ -249,46 +249,49 @@ export default function DashboardContent({
           </div>
         </div>
         <div className="flex items-center gap-4 mb-6">
-            <button
-              onClick={() => setShowTips(!showTips)}
-              className="text-blue-600 hover:text-blue-800 underline"
-            >
-              {showTips ? "Hide Tips" : "Show Tips"}
-            </button>
+          <button
+            onClick={() => setShowTips(!showTips)}
+            className="text-blue-600 hover:text-blue-800 underline"
+          >
+            {showTips ? "Hide Tips" : "Show Tips"}
+          </button>
+          {showTips && (
             <div className="text-sm text-gray-600">
-              {showTips && (
-                <p className="mb-2">
-                  <p className="font-bold">Tips</p>
-                <ul className="list-disc pl-5 mt-2">
-                  <li>Your Playground account is pre-populated with $1000</li>
-                    <li>Click on &quot;+ New Account&quot; to add as many other accounts as you&apos;d like</li>
-                  <li>
-                    Any deposit/withdrawal transactions will be immediately
-                    viewable in your transaction history
-                  </li>
-                  <li>
-                    Interest is compounded daily, and any accumulated interest
-                    will always show as the top row in your transaction history
-                  </li>
-                  <li>
-                    Interest (if any has accumulated) is paid when your next
-                    transaction is recorded
-                  </li>
-                  <li>
-                    Interest rate changes are recorded as a transaction and will
-                    trigger the payment of any accumulated interest (with subsequent
-                    interest accumulating at the new rate)
-                  </li>
-                  <li>
-                    Because your Playground account was pre-populated 1 year
-                    ago, you have accumulated interest in this account and paid
-                    interest will be recorded on your next transaction
-                  </li>
-                </ul>
-                </p>
-              )}
-            </div>{" "}
-          </div>
+              <p className="font-bold">Tips</p>
+              <ul className="list-disc pl-5 mt-2">
+                <li>
+                  Your Playground bank account is pre-populated with $1000
+                </li>
+                <li>
+                  Click on &quot;+ New Account&quot; to add as many other
+                  accounts as you&apos;d like
+                </li>
+                <li>
+                  Any deposit/withdrawal transactions will be immediately
+                  viewable in your transaction history
+                </li>
+                <li>
+                  Interest is compounded daily, and any accumulated interest
+                  will always show as the top row in your transaction history
+                </li>
+                <li>
+                  Interest (if any has accumulated) is paid when your next
+                  transaction is recorded
+                </li>
+                <li>
+                  Interest rate changes are recorded as a transaction and will
+                  trigger the payment of any accumulated interest (with
+                  subsequent interest accumulating at the new rate)
+                </li>
+                <li>
+                  Because your Playground account was pre-populated 1 year ago,
+                  you have accumulated interest in this account and paid
+                  interest will be recorded on your next transaction
+                </li>
+              </ul>
+            </div>
+          )}{" "}
+        </div>
         <div className="flex items-center gap-4 mb-6">
           <select
             value={selectedAccountId}
