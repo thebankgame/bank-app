@@ -3,9 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { addTransaction, getAccount } from "../../../services/dynamoDBService";
 
-export async function POST(request: Request, context: { params: { accountId: string } }) {
-  const params = context.params;
-  const accountId = params.accountId;
+export async function POST(request: Request) {
+  const url = new URL(request.url);
+  const accountId = url.pathname.split("/").slice(-2, -1)[0]; // Extract accountId from the URL
+
   if (!accountId) {
     return new NextResponse("Account ID is required", { status: 400 });
   }
