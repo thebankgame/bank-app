@@ -19,6 +19,7 @@
     "@mui/material": "^6.4.8",
     "@types/jsonwebtoken": "^9.0.9",
     "chart.js": "^4.4.8",
+    "eslint-define-config": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.2.1",
     "next-auth": "^4.24.11",
@@ -37,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
+    "eslint-plugin-react": "^7.37.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
