@@ -4,7 +4,7 @@
 
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { authOptions } from "../api/auth/[...nextauth]/authOptions";
 import DashboardContent from "./DashboardContent";
 import { UserBankData } from "@/types/bank";
 import { getAccounts } from "../api/services/dynamoDBService";
@@ -19,8 +19,8 @@ import SignOutButton from "../components/SignOutButton";
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id) {
-    console.error("No user ID in session");
+  if (!session?.user?.email) {
+    console.error("No user email in session");
     redirect("/");
   }
 

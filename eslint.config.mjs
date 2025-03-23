@@ -1,7 +1,7 @@
 import globals from "globals/index.js";
 import reactPlugin from "eslint-plugin-react";
-import typescriptPlugin from "@typescript-eslint/eslint-plugin/dist/index.js";
-import importPlugin from "eslint-plugin-import"; // Import the "import" plugin
+import typescriptPlugin from "@typescript-eslint/eslint-plugin"; // Corrected import
+import importPlugin from "eslint-plugin-import";
 import typescriptParser from "@typescript-eslint/parser"; // Import the parser
 
 export default [

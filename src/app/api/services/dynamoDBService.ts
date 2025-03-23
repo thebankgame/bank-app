@@ -20,8 +20,15 @@ import {
 import { BankAccount, Transaction } from "@/types/bank";
 import { v4 as uuidv4 } from "uuid";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { calculateInterestSinceLastTransaction } from "@/app/utils/interest";
+
+// Extend the Session type to include accessToken
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+  }
+}
 
 /**
  * Custom error class for handling token expiration errors.

@@ -89,7 +89,7 @@ export default function CompoundInterestChart({
         },
         titleFont: {
           family: "'Inter', sans-serif",
-          weight: "600",
+          weight: 600, 
         },
         callbacks: {
           label: (context) => {
