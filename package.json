@@ -41,6 +41,7 @@
     "eslint-plugin-react": "^7.37.4",
     "globals": "^16.0.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "uuid": "^11.1.0"
   }
 }

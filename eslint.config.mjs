@@ -1,8 +1,8 @@
 import globals from "globals/index.js";
 import reactPlugin from "eslint-plugin-react";
-import typescriptPlugin from "@typescript-eslint/eslint-plugin"; // Corrected import
 import importPlugin from "eslint-plugin-import";
-import typescriptParser from "@typescript-eslint/parser"; // Import the parser
+import typescriptParser from "@typescript-eslint/parser"; 
+import typescriptPlugin from "@typescript-eslint/eslint-plugin";
 
 export default [
   {
@@ -18,12 +18,12 @@ export default [
       },
       ecmaVersion: 2021,
       sourceType: "module",
-      parser: typescriptParser, // Use the imported parser object
+      parser: typescriptParser, 
     },
     plugins: {
       react: reactPlugin,
       "@typescript-eslint": typescriptPlugin,
-      import: importPlugin, // Add the "import" plugin
+      import: importPlugin, 
     },
     rules: {
       "react/no-unescaped-entities": "error",
