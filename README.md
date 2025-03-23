@@ -1,9 +1,13 @@
 # Bank Game Application (aka "Run Your Own Bank")
 
 ## Context
-This app was created in a matter of days for an interview at thrv. It was built to be a focus of conversation about software engineering, using a tech stack similar to that at thrv (TypeScript, Next.js, DynamoDB). This app was built using ~70% AI-generated code using a mix of tools including Cursor, Windsurf, GitHub Copilot and Google Gemini.
+This app was created by one person in a matter of days, primarily for an interview at thrv. It was built to be a focus of conversation about software engineering, using a tech stack similar to that in use at thrv (TypeScript, Next.js, DynamoDB). I used a mix of AI tools while building the app, including Cursor, Windsurf, GitHub Copilot and Google Gemini. The AI tools built a core foundation of the app quickly, but as the application grew in complexity they made more mistakes and I found it faster to pivot toward writing much more manual code and using the AI tools for more targeted fixing of bugs and isolated code. 
 
-What's missing? This app is not production ready, and is missing a number of aspects more typical of production app
+### Next Steps
+What's missing from this app? If I were going to take it to production, I would add a number of aspects more typical of production app, including: 
+* Automated testing
+* Localization
+* Accessibility
 
 ## Overview
 
@@ -123,3 +127,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 - Inspired by the book [The First National Bank of Dad](https://www.amazon.com/First-National-Bank-Dad-Foolproof/dp/1416534253).
 - Thanks to the open-source community for tools and libraries used in this project.
 
+
+
+#
