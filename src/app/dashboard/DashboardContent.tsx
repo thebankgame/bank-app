@@ -55,7 +55,6 @@ export default function DashboardContent({
     initialData.selectedAccountId
   );
 
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(
@@ -64,12 +63,14 @@ export default function DashboardContent({
   );
   const [currentRate, setCurrentRate] =
     useState(selectedAccount?.interestRate) || 0;
+  const [currentBalance, setCurrentBalance] =
+    useState(selectedAccount?.balance) || 0;
   const [transactions, setTransactions] = useState<Transaction[]>(
     selectedAccount?.transactions || []
   );
 
   const refreshAccounts = async () => {
-    setIsLoading(true);
+    //    setIsLoading(true);
     setError(null);
     try {
       const response = await fetch("/api/accounts", {
@@ -102,7 +103,7 @@ export default function DashboardContent({
         error instanceof Error ? error.message : "Failed to load accounts"
       );
     } finally {
-      setIsLoading(false);
+      //     setIsLoading(false);
     }
   };
 
@@ -143,44 +144,15 @@ export default function DashboardContent({
 
     if (!selectedAccount) return;
 
-    setIsLoading(true);
-
-
     setTransactions((prev) => [...prev, newTransaction]);
-
-    // setSelectedAccount(updatedAccount);
-    // const { newBalance } = calculateInterestSinceLastTransaction(
-    //   updatedAccount.balance,
-    //   updatedAccount.transactions
-    // );
-
-    // await refreshAccounts();
-    // selectedAccount?.transactions.push(newTransaction);
-    setIsLoading(false);
+    setCurrentBalance(newTransaction.runningBalance);
   }
-
-  // function calculateAccumulatedInterest(
-  //   prevTransaction: Transaction,
-  //   interestRate: number
-  // ): number {
-  //   if (!prevTransaction || !interestRate) return 0;
-
-  //   const daysBetweenTransactions =
-  //     (new Date().getTime() - new Date(prevTransaction.timestamp).getTime()) /
-  //     (1000 * 60 * 60 * 24);
-
-  //   return (
-  //     prevTransaction.runningBalance *
-  //     (interestRate / 365) *
-  //     daysBetweenTransactions
-  //   );
-  // }
 
   if (error) {
     return <ErrorDisplay error={error} onRetry={refreshAccounts} />;
   }
 
-  if (isLoading && accounts.length === 0) {
+  if (accounts.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
@@ -230,12 +202,13 @@ export default function DashboardContent({
           </button>
         </div>
 
-        {selectedAccount ? (
+        {selectedAccount && currentBalance ? (
           <AccountOverview
             session={session}
             account={selectedAccount}
+            balance={currentBalance}
             onInterestRateChange={handleInterestRateChange}
-            onTransactionsChange={handleNewTransaction}
+            onCreateNewTransaction={handleNewTransaction}
           />
         ) : null}
 
@@ -245,8 +218,7 @@ export default function DashboardContent({
               <NewTransactionForm
                 session={session}
                 account={selectedAccount}
-                onSubmit={handleNewTransaction}
-                isLoading={isLoading}
+                onCreateNewTransaction={handleNewTransaction}
               />
             )}
           </DashboardCard>
@@ -265,14 +237,14 @@ export default function DashboardContent({
               <DashboardCard title="Interest Projection">
                 <div className="h-[300px]">
                   <CompoundInterestChart
-                    balance={selectedAccount.balance ?? 0}
+                    balance={currentBalance || 0}
                     interestRate={currentRate}
                   />
                 </div>
               </DashboardCard>
               <DashboardCard title="Interest Rate Simulator">
                 <InterestRateSimulator
-                  initialBalance={selectedAccount.balance ?? 0}
+                  initialBalance={currentBalance || 0}
                   initialRate={currentRate}
                 />
               </DashboardCard>

@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { time } from "console";
+import { calculateInterestSinceLastTransaction } from "@/app/utils/interest";
 
 export class TokenExpiredError extends Error {
   constructor(message: string) {
@@ -245,42 +246,25 @@ export async function addTransaction(
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-    let totalAccumulatedInterest = 0;
-    let newRunningBalance = 0;
-    let lastBalance = 0;
+    const {interestSinceLastTransaction} = calculateInterestSinceLastTransaction(
+      account.interestRate,
+      sortedTransactions
+    );
 
-    // console.log("sortedTransactions", sortedTransactions);
-    // console.log("sortedTransactions.length", sortedTransactions.length);
-
-    if (sortedTransactions.length > 0) {
-      // Calculate interest since last transaction
-      const lastTransaction = sortedTransactions[0];
-      const lastTransactionDate = new Date(lastTransaction?.timestamp || now);
-      lastBalance = sortedTransactions[0].runningBalance || 0;
-
-      // Calculate days between last transaction and now
-      const daysSinceLastTransaction = Math.floor(
-        (new Date(now).getTime() - lastTransactionDate.getTime()) /
-          (1000 * 60 * 60 * 24)
-      );
-
-      // Calculate interest since last transaction
-      totalAccumulatedInterest =
-        lastBalance * (0.025 / 365) * daysSinceLastTransaction;
-    }
+    const lastBalance : number = sortedTransactions[0].runningBalance || 0;;
 
     // Calculate the new running balance including the new transaction
-    const newTransactionAmount =
+    const newTransactionAmount : number =
       transaction.type === "deposit" ? transaction.amount : -transaction.amount;
-    newRunningBalance =
-      lastBalance + newTransactionAmount + totalAccumulatedInterest;
+    const newRunningBalance =
+      lastBalance + newTransactionAmount + interestSinceLastTransaction;
 
     const newTransaction: Transaction = {
       transactionId: uuidv4(),
       ...transaction,
       timestamp: now,
       runningBalance: newRunningBalance,
-      accumulatedInterest: totalAccumulatedInterest,
+      accumulatedInterest: interestSinceLastTransaction,
     };
     const command = new UpdateCommand({
       TableName: "BankAccounts",

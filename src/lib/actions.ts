@@ -4,11 +4,10 @@ import { Session } from "next-auth";
 
 
 
-export async function createNewTransaction(session: Session, account: BankAccount, transaction: {
-    type: "deposit" | "withdrawal";
-    amount: number;
-    description: string;
-  }): Promise<Transaction | undefined> {
+export async function createNewTransaction(session: Session, account: BankAccount, transaction: Omit<
+    Transaction,
+    "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
+  >): Promise<Transaction | undefined> {
 
     try {
       const response = await fetch(

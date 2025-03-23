@@ -10,17 +10,21 @@ import router from "next/router";
 interface AccountOverviewProps {
   session: Session;
   account: BankAccount;
+  balance: number;
   onInterestRateChange: (newRate: number) => void;
-  onTransactionsChange: (newTransaction : Transaction) => void;
+  onCreateNewTransaction: (newTransaction: Transaction) => void;
 }
 
-export default function AccountOverview({ session, account, onInterestRateChange, onTransactionsChange }: AccountOverviewProps) {
-
+export default function AccountOverview({
+  session,
+  account,
+  balance,
+  onInterestRateChange,
+  onCreateNewTransaction: onTransactionsChange,
+}: AccountOverviewProps) {
   const [isRateChanging, setIsRateChanging] = useState(false);
-  const [inputRate, setInputRate] =
-    useState(account?.interestRate) || 0;
-    const [currentRate, setCurrentRate] =
-    useState(account?.interestRate) || 0;
+  const [inputRate, setInputRate] = useState(account?.interestRate) || 0;
+  const [currentRate, setCurrentRate] = useState(account?.interestRate) || 0;
 
   const handleRateChange = async () => {
     console.log("handling rate change to:", inputRate);
@@ -44,19 +48,18 @@ export default function AccountOverview({ session, account, onInterestRateChange
     //   account.transactions[account.transactions.length - 1];
     const accumulatedInterest = calculateInterestSinceLastTransaction(
       account.interestRate,
-      account.transactions,
+      account.transactions
     );
 
-    const transaction: Transaction = {
-      transactionId: crypto.randomUUID(), // Generate a unique ID for the transaction
+    const transaction: Omit<
+        Transaction,
+        "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
+      > = {
       type: "deposit",
       amount: 0,
       description: `Interest Rate changed from ${account?.interestRate.toFixed(
         1
       )}% to ${inputRate?.toFixed(1)}%`,
-      timestamp: new Date().toISOString(),
-      runningBalance: 0, // Placeholder, to be updated later
-      accumulatedInterest: 0, // Placeholder, to be updated later
     };
 
     const newTransaction = await createNewTransaction(
@@ -82,40 +85,35 @@ export default function AccountOverview({ session, account, onInterestRateChange
     setIsRateChanging(false);
   };
 
-
-    const handleInterestRateChange = async (newRate: number) => {
-  
-      try {
-        const response = await fetch(
-          `/api/accounts/${account.accountId}/interestRate`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.idToken}`,
-            },
-            body: JSON.stringify({ interestRate: Number(newRate) }),
-          }
-        );
-  
-        if (response.status === 401) {
-          // Token expired, redirect to sign in
-          router.push("/");
-          return;
+  const handleInterestRateChange = async (newRate: number) => {
+    try {
+      const response = await fetch(
+        `/api/accounts/${account.accountId}/interestRate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.idToken}`,
+          },
+          body: JSON.stringify({ interestRate: Number(newRate) }),
         }
-  
-        if (!response.ok) {
-          throw new Error("Failed to update interest rate");
-        }
+      );
 
-        onInterestRateChange(newRate);
-  
-      } catch (error) {
-        console.error("Error updating interst rate:", error);
+      if (response.status === 401) {
+        // Token expired, redirect to sign in
+        router.push("/");
+        return;
       }
-    };
-  
-  
+
+      if (!response.ok) {
+        throw new Error("Failed to update interest rate");
+      }
+
+      onInterestRateChange(newRate);
+    } catch (error) {
+      console.error("Error updating interst rate:", error);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -124,7 +122,7 @@ export default function AccountOverview({ session, account, onInterestRateChange
           Current Balance
         </h3>
         <p className="text-2xl font-bold text-green-900">
-          ${(account.balance ?? 0).toFixed(2)}
+          ${(balance ?? 0).toFixed(2)}
         </p>
       </div>
       <div className="bg-purple-100 rounded-lg shadow-md p-4">
@@ -176,9 +174,7 @@ export default function AccountOverview({ session, account, onInterestRateChange
               {" "}
               (
               {new Date(
-                account.transactions[
-                  account.transactions.length - 1
-                ].timestamp
+                account.transactions[account.transactions.length - 1].timestamp
               ).toLocaleDateString()}
               )
             </span>
@@ -188,16 +184,14 @@ export default function AccountOverview({ session, account, onInterestRateChange
           {account.transactions.length > 0 ? (
             <span
               className={
-                account.transactions[
-                  account.transactions.length - 1
-                ].type === "deposit"
+                account.transactions[account.transactions.length - 1].type ===
+                "deposit"
                   ? "text-green-700"
                   : "text-red-700"
               }
             >
-              {account.transactions[
-                account.transactions.length - 1
-              ].type === "deposit"
+              {account.transactions[account.transactions.length - 1].type ===
+              "deposit"
                 ? "+"
                 : "-"}
               $

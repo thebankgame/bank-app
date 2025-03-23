@@ -1,4 +1,4 @@
-import type { Transaction } from "../types/bank";
+import type { Transaction } from "@/types/bank";
 
 export function calculateInterestSinceLastTransaction( interestRate: number, transactions: Transaction[]) {
   const sortedTransactions = [...transactions].sort(
