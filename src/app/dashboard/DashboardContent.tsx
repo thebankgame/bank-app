@@ -213,7 +213,7 @@ export default function DashboardContent({
 
         {currentRate && currentBalance ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DashboardCard title={"Interest Projection for $" + currentBalance?.toFixed(2) + " at " + currentRate.toFixed(1) + "%"}>
+            <DashboardCard title={"Balance Projection for $" + currentBalance?.toFixed(2) + " at " + currentRate.toFixed(1) + "%"}>
               <div className="h-[300px]">
                 <CompoundInterestChart
                   balance={currentBalance}
