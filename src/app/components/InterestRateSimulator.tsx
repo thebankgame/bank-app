@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -55,49 +55,40 @@ export default function InterestRateSimulator({
   initialBalance = 0,
   initialRate = 0,
 }: InterestRateSimulatorProps) {
-  console.log("InterestRateSimulator props:", { initialBalance, initialRate });
-
-  const [balance, setBalance] = useState(initialBalance);
   const [interestRate, setInterestRate] = useState(initialRate);
 
-  // Ensure deterministic calculations
+  // Precompute data points and avoid using `Date` directly in the render
   const dataPoints = useMemo(() => {
     const years = 5;
-    const dataPoints = Array.from({ length: years * 12 + 1 }, (_, i) => {
+    return Array.from({ length: years * 12 + 1 }, (_, i) => {
       const month = i;
-      const amount = balance * Math.pow(1 + interestRate / 100 / 12, month);
+      const amount =
+        initialBalance * Math.pow(1 + interestRate / 100 / 12, month);
       return {
         month,
         amount,
       };
     });
-    return dataPoints.map((point) => {
-      const date = new Date();
-      date.setMonth(date.getMonth() + point.month);
-      return {
-        label: date.toLocaleDateString("en-US", {
-          month: "short",
-          year: "numeric",
-        }),
-        value: Math.round(point.amount * 100) / 100,
-      };
-    });
-  }, [initialBalance, initialRate]);
+  }, [initialBalance, interestRate]);
+
+  const labels = useMemo(() => {
+    return dataPoints.map((point) => `Month ${point.month}`);
+  }, [dataPoints]);
 
   const data = useMemo(
     () => ({
-      labels: dataPoints.map((point) => point.label),
+      labels,
       datasets: [
         {
           label: "Interest Simulation",
-          data: dataPoints.map((point) => point.value),
+          data: dataPoints.map((point) => point.amount),
           borderColor: "#10B981",
           backgroundColor: "rgba(16, 185, 129, 0.1)",
           fill: true,
         },
       ],
     }),
-    [dataPoints]
+    [labels, dataPoints]
   );
 
   /**
@@ -110,7 +101,7 @@ export default function InterestRateSimulator({
     setInterestRate(newRate);
   };
 
-  const projectedBalance = balance * Math.pow(1 + interestRate / 100, 5);
+  const projectedBalance = initialBalance * Math.pow(1 + interestRate / 100, 5);
 
   const formattedProjectedBalance: string = projectedBalance.toLocaleString(
     undefined,
@@ -119,7 +110,7 @@ export default function InterestRateSimulator({
       maximumFractionDigits: 2,
     }
   );
-  const totalInterest = projectedBalance - balance;
+  const totalInterest = projectedBalance - initialBalance;
   const formattedTotalInterest: string = totalInterest.toLocaleString(
     undefined,
     {
@@ -221,7 +212,7 @@ export default function InterestRateSimulator({
               Current Balance
             </h3>
             <p className="mt-1 text-xl font-semibold text-gray-900">
-              ${balance.toFixed(2)}
+              ${initialBalance.toFixed(2)}
             </p>
           </div>
           <div className="bg-white p-3 rounded-lg shadow">
