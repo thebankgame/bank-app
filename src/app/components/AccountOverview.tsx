@@ -23,19 +23,18 @@ export default function AccountOverview({
   account,
   balance,
   interestRate,
-  // accountRate,
   latestTransaction,
   onInterestRateChange,
   onCreateNewTransaction: onTransactionsChange,
 }: AccountOverviewProps) {
   const [isRateChanging, setIsRateChanging] = useState(false);
   const [inputRate, setInputRate] = useState(interestRate) || 0;
-  // const [currentRate, setCurrentRate] = useState(account?.interestRate) || 0;
+  const [isLoading, setIsLoading] = useState(false);
 
-  console.log("rendering account overview for balance: ", balance);
-  console.log("rendering account overview for interestRate: ", interestRate);
-  console.log("rendering account overview for inputRate: ", inputRate);
-  console.log("rendering account overview for account: ", account);
+  // console.log("rendering account overview for balance: ", balance);
+  // console.log("rendering account overview for interestRate: ", interestRate);
+  // console.log("rendering account overview for inputRate: ", inputRate);
+  // console.log("rendering account overview for account: ", account);
 
     // TODO: remove useEffect - unnecessary here
     // Update balance when initialBalance changes
@@ -45,6 +44,7 @@ export default function AccountOverview({
 
   const handleRateChange = async () => {
     console.log("handling rate change to:", inputRate);
+    setIsLoading(true);
     if (!account) {
       console.error("No account selected");
       return;
@@ -97,8 +97,8 @@ export default function AccountOverview({
       handleInterestRateChange(inputRate);
     }
 
-    // setCurrentRate(inputRate);
     setIsRateChanging(false);
+    setIsLoading(false);
   };
 
   const handleInterestRateChange = async (newRate: number) => {
@@ -160,9 +160,16 @@ export default function AccountOverview({
               onChange={(e) => setInputRate(Number(e.target.value))}
               className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
             />
-            <button
+        <button
               onClick={handleRateChange}
-              className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+              className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+          disabled={isLoading}
+        >
+          {isLoading ? "Processing..." : "Change"}
+        </button>
+            <button
             >
               Change
             </button>

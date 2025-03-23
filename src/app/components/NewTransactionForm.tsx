@@ -31,10 +31,11 @@ export default function NewTransactionForm({
     if (!isNaN(numericAmount) && description.trim()) {
       const transaction: Omit<
         Transaction,
-        "transactionId" | "timestamp" | "runningBalance" | "accumulatedInterest"
+        "transactionId" |  "runningBalance" | "accumulatedInterest"
       > = {
         type,
         amount: numericAmount,
+        timestamp: new Date().toISOString(),
         description: description.trim(),
       };
 
