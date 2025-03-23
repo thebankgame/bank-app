@@ -118,10 +118,6 @@ src/
 - **Chart.js**: Library for creating interactive charts.
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
 ## Acknowledgments
 
 - Inspired by the book [The First National Bank of Dad](https://www.amazon.com/First-National-Bank-Dad-Foolproof/dp/1416534253).
