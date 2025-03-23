@@ -164,9 +164,9 @@ export default function CompoundInterestChart({
             size: 12,
           },
           color: "#6B7280", // text-gray-500
-          callback: (value) => {
-            return `$${value.toLocaleString()}`;
-          },
+          // callback: (value) => {
+          //   return `$${value.toLocaleString()}`;
+          // },
         },
       },
     },
