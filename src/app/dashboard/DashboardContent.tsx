@@ -25,7 +25,7 @@ import { createAccount } from "../api/services/dynamoDBService";
 
 /**
  * Props for the DashboardContent component.
- * 
+ *
  * @typedef {Object} DashboardContentProps
  * @property {Session} session - The current user's session.
  * @property {UserBankData} initialData - The initial data for the user's bank accounts.
@@ -62,7 +62,7 @@ function ErrorDisplay({
 /**
  * The main content area for the user dashboard. Displays account details,
  * transaction history, and tools for managing accounts and simulating interest rates.
- * 
+ *
  * @param {DashboardContentProps} props - The props for the component.
  * @returns {JSX.Element} The JSX structure for the dashboard content.
  */
@@ -94,7 +94,6 @@ export default function DashboardContent({
    * Refreshes the list of accounts by fetching the latest data from the server.
    */
   const refreshAccounts = async () => {
-
     setError(null);
     try {
       const response = await fetch("/api/accounts", {
@@ -123,7 +122,7 @@ export default function DashboardContent({
           setCurrentRate(data[0].interestRate);
           setCurrentBalance(data[0].balance);
           setTransactions(data[0].transactions);
-          }
+        }
       } else {
         // Create a playground account so the user can play around with the app
         const newAccount = await handleCreateAccount("Playground");
@@ -183,7 +182,7 @@ export default function DashboardContent({
 
   /**
    * Handles the creation of a new account.
-   * 
+   *
    * @param {string} name - The name of the new account.
    * @returns {Promise<BankAccount | null>} The newly created account or null if creation failed.
    */
@@ -218,7 +217,6 @@ export default function DashboardContent({
   async function handleInterestRateChange(newRate: number) {
     console.log("about to handleInterstRateChange to ", newRate);
     setCurrentRate(newRate);
-
   }
 
   async function handleNewTransaction(newTransaction: Transaction) {
@@ -284,41 +282,40 @@ export default function DashboardContent({
           </button>
         </div>
 
-        
-          <AccountOverview
-            session={session}
-            account={selectedAccount}
-            balance={currentBalance}
-            interestRate={currentRate}
-            latestTransaction={transactions[transactions.length - 1]}
-            onInterestRateChange={handleInterestRateChange}
-            onCreateNewTransaction={handleNewTransaction}
-          />
+        <AccountOverview
+          session={session}
+          account={selectedAccount}
+          balance={currentBalance}
+          interestRate={currentRate}
+          latestTransaction={transactions[transactions.length - 1]}
+          onInterestRateChange={handleInterestRateChange}
+          onCreateNewTransaction={handleNewTransaction}
+        />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DashboardCard
-              title={
-                "Balance Projection for $" +
-                currentBalance?.toFixed(2) +
-                " at " +
-                currentRate?.toFixed(1) +
-                "%"
-              }
-            >
-              <div className="h-[300px]">
-                <CompoundInterestChart
-                  balance={currentBalance}
-                  interestRate={currentRate}
-                />
-              </div>
-            </DashboardCard>
-            <DashboardCard title="5 Year Interest Rate Simulation">
-              <InterestRateSimulator
-                initialBalance={currentBalance}
-                initialRate={currentRate}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DashboardCard
+            title={
+              "Balance Projection for $" +
+              currentBalance?.toFixed(2) +
+              " at " +
+              currentRate?.toFixed(1) +
+              "%"
+            }
+          >
+            <div className="h-[300px]">
+              <CompoundInterestChart
+                balance={currentBalance}
+                interestRate={currentRate}
               />
-            </DashboardCard>
-          </div>
+            </div>
+          </DashboardCard>
+          <DashboardCard title="5 Year Interest Rate Simulation">
+            <InterestRateSimulator
+              initialBalance={currentBalance}
+              initialRate={currentRate}
+            />
+          </DashboardCard>
+        </div>
 
         <div className="mb-8">
           <DashboardCard title="New Transaction">

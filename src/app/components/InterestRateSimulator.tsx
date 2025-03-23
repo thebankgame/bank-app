@@ -32,7 +32,7 @@ ChartJS.register(
 
 /**
  * Props for the InterestRateSimulator component.
- * 
+ *
  * @typedef {Object} InterestRateSimulatorProps
  * @property {number | undefined} initialBalance - The initial balance to simulate.
  * @property {number | undefined} initialRate - The initial interest rate to simulate.
@@ -45,7 +45,7 @@ interface InterestRateSimulatorProps {
 /**
  * A component that simulates and visualizes the growth of a balance over time
  * based on a user-defined interest rate.
- * 
+ *
  * @param {InterestRateSimulatorProps} props - The props for the component.
  * @returns {JSX.Element} The JSX structure for the interest rate simulator.
  */
@@ -123,13 +123,12 @@ export default function InterestRateSimulator({
           fill: false,
         },
       ],
-  });
-  
+    });
   }, [balance, interestRate]);
 
   /**
    * Handles changes to the interest rate slider.
-   * 
+   *
    * @param {React.ChangeEvent<HTMLInputElement>} e - The change event from the slider.
    */
   const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -276,7 +275,7 @@ export default function InterestRateSimulator({
           Balance Projection
         </h3>
         <div className="h-[300px]">
-        {/* <div className="w-full h-full"> */}
+          {/* <div className="w-full h-full"> */}
           <Line options={options} data={chartData} />
         </div>
         {/* </div> */}

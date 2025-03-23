@@ -15,7 +15,7 @@ import router from "next/router";
 
 /**
  * Props for the AccountOverview component.
- * 
+ *
  * @typedef {Object} AccountOverviewProps
  * @property {Session} session - The current user's session.
  * @property {BankAccount | null} account - The bank account to display.
@@ -39,7 +39,7 @@ interface AccountOverviewProps {
  * A component that displays an overview of a bank account, including the
  * current balance, interest rate, and the latest transaction. It also allows
  * users to change the interest rate.
- * 
+ *
  * @param {AccountOverviewProps} props - The props for the component.
  * @returns {JSX.Element} The JSX structure for the account overview.
  */
@@ -61,11 +61,11 @@ export default function AccountOverview({
   // console.log("rendering account overview for inputRate: ", inputRate);
   // console.log("rendering account overview for account: ", account);
 
-    // TODO: remove useEffect - unnecessary here
-    // Update input placeholder rate when initialBalance changes
-    useEffect(() => {
-      setInputRate(interestRate || 0);
-    }, [interestRate]);
+  // TODO: remove useEffect - unnecessary here
+  // Update input placeholder rate when initialBalance changes
+  useEffect(() => {
+    setInputRate(interestRate || 0);
+  }, [interestRate]);
 
   /**
    * Handles the interest rate change process, including creating a transaction
@@ -96,9 +96,9 @@ export default function AccountOverview({
     );
 
     const transaction: Omit<
-        Transaction,
-        "transactionId" | "runningBalance" | "accumulatedInterest"
-      > = {
+      Transaction,
+      "transactionId" | "runningBalance" | "accumulatedInterest"
+    > = {
       type: "deposit",
       amount: 0,
       timestamp: new Date().toISOString(),
@@ -189,25 +189,23 @@ export default function AccountOverview({
               onChange={(e) => setInputRate(Number(e.target.value))}
               className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
             />
-        <button
+            <button
               onClick={handleRateChange}
               className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 isLoading ? "opacity-50 cursor-not-allowed" : ""
               }`}
-          disabled={isLoading}
-        >
-          {isLoading ? "Processing..." : "Change"}
-        </button>
-            <button
+              disabled={isLoading}
             >
-              Change
+              {isLoading ? "Processing..." : "Change"}
             </button>
+            {!isLoading && (
             <button
               onClick={() => setIsRateChanging(false)}
               className="px-4 py-2 text-gray-700 hover:text-gray-900 focus:outline-none"
             >
               Cancel
             </button>
+          )}
           </div>
         ) : (
           <button
@@ -221,30 +219,27 @@ export default function AccountOverview({
       <div className="bg-orange-100 rounded-lg shadow-md p-4">
         <h3 className="text-sm font-medium text-orange-800 mb-1">
           Last Transaction
-            <span className="font-normal text-orange-700">
-              {" "}
-              (
-              {new Date(
-                latestTransaction?.timestamp ? new Date(latestTransaction.timestamp) : new Date()
-              ).toLocaleDateString()}
-              )
-            </span>
+          <span className="font-normal text-orange-700">
+            {" "}
+            (
+            {new Date(
+              latestTransaction?.timestamp
+                ? new Date(latestTransaction.timestamp)
+                : new Date()
+            ).toLocaleDateString()}
+            )
+          </span>
         </h3>
         <p className="text-2xl font-bold text-orange-900">
           {latestTransaction ? (
             <span
               className={
-                latestTransaction.type ===
-                "deposit"
+                latestTransaction.type === "deposit"
                   ? "text-green-700"
                   : "text-red-700"
               }
             >
-              {latestTransaction.type ===
-              "deposit"
-                ? "+"
-                : "-"}
-              $
+              {latestTransaction.type === "deposit" ? "+" : "-"}$
               {latestTransaction.amount.toFixed(2)}
             </span>
           ) : (

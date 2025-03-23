@@ -13,7 +13,7 @@ import { Session } from "next-auth";
 
 /**
  * Props for the NewTransactionForm component.
- * 
+ *
  * @typedef {Object} NewTransactionFormProps
  * @property {Session} session - The current user's session.
  * @property {BankAccount} account - The bank account for which the transaction is being created.
@@ -27,7 +27,7 @@ interface NewTransactionFormProps {
 
 /**
  * A form component for creating new transactions (deposits or withdrawals).
- * 
+ *
  * @param {NewTransactionFormProps} props - The props for the component.
  * @returns {JSX.Element} The JSX structure for the new transaction form.
  */
@@ -43,7 +43,7 @@ export default function NewTransactionForm({
 
   /**
    * Handles the form submission to create a new transaction.
-   * 
+   *
    * @param {React.FormEvent} e - The form submission event.
    */
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,7 +55,7 @@ export default function NewTransactionForm({
     if (!isNaN(numericAmount) && description.trim()) {
       const transaction: Omit<
         Transaction,
-        "transactionId" |  "runningBalance" | "accumulatedInterest"
+        "transactionId" | "runningBalance" | "accumulatedInterest"
       > = {
         type,
         amount: numericAmount,
