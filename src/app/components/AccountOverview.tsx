@@ -12,7 +12,6 @@ interface AccountOverviewProps {
   account: BankAccount | null;
   balance: number | undefined;
   interestRate: number | undefined;
-  // accountRate: number | undefined;
   latestTransaction: Transaction | null;
   onInterestRateChange: (newRate: number) => void;
   onCreateNewTransaction: (newTransaction: Transaction) => void;
@@ -37,7 +36,7 @@ export default function AccountOverview({
   // console.log("rendering account overview for account: ", account);
 
     // TODO: remove useEffect - unnecessary here
-    // Update balance when initialBalance changes
+    // Update input placeholder rate when initialBalance changes
     useEffect(() => {
       setInputRate(interestRate || 0);
     }, [interestRate]);
