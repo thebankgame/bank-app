@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bank Game Application (aka "Run Your Own Bank")
 
-## Getting Started
+## Context
+This app was created in a matter of days for an interview at thrv. It was built to be a focus of conversation about software engineering, using a tech stack similar to that at thrv (TypeScript, Next.js, DynamoDB). This app was built using ~70% AI-generated code using a mix of tools including Cursor, Windsurf, GitHub Copilot and Google Gemini.
 
-First, run the development server:
+What's missing? This app is not production ready, and is missing a number of aspects more typical of production app
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Overview
+
+The **Bank Game Application** is an interactive web application designed to teach kids about the fundamentals of banking and compound interest. Inspired by the book [The First National Bank of Dad](https://www.amazon.com/First-National-Bank-Dad-Foolproof/dp/1416534253), this app allows users to simulate running their own virtual bank. Parents can create accounts for their children, set interest rates, and demonstrate how money grows over time through savings and compound interest.
+
+## Features
+
+- **Account Management**: Create and manage multiple bank accounts.
+- **Transaction Tracking**: Record deposits, withdrawals, and view transaction history.
+- **Interest Simulation**: Visualize how money grows over time with compound interest.
+- **Interactive Charts**: Use charts to project balances and simulate interest rates.
+- **Authentication**: Secure login using AWS Cognito and NextAuth.
+- **Authorization**: Row-level database security keeps your data safe from others.
+- **Real-Time Updates**: Dynamically update balances and interest calculations.
+
+## Why Use This Application?
+
+This application is ideal for:
+- **Parents**: Teach children the value of saving and the power of compound interest.
+- **Educators**: Use as a tool to demonstrate financial literacy concepts in classrooms.
+- **Individuals**: Experiment with different savings strategies and interest rates to understand financial growth.
+
+## How It Works
+
+1. **Authentication**: Users sign in using AWS Cognito.
+2. **Dashboard**: After signing in, users are redirected to the dashboard where they can:
+   - View account balances and transaction history.
+   - Create new accounts or transactions.
+   - Adjust interest rates and see the impact on savings.
+3. **Interest Simulation**: The app calculates interest based on the annual rate and displays projections using interactive charts.
+4. **Transaction History**: Users can view detailed transaction logs, including accumulated interest and running balances.
+
+## Developer Guide
+
+### Prerequisites
+
+To run the application locally, ensure you have the following installed:
+- **Node.js** (v16 or later)
+- **npm** 
+- **AWS Cognito**
+- **DynamoDB Table**: A DynamoDB table named `BankAccounts` with the following schema:
+  - Partition Key: `userId` (String)
+  - Sort Key: `accountId` (String)
+
+### Environment Variables
+
+Create a `.env.local` file in the root directory and configure the following environment variables:
+
+```
+NEXTAUTH_URL=http://localhost:3000
+COGNITO_CLIENT_ID=your-cognito-client-id
+COGNITO_CLIENT_SECRET=your-cognito-client-secret
+COGNITO_ISSUER=https://cognito-idp.<region>.amazonaws.com/<user-pool-id>
+AWS_REGION=your-aws-region
+COGNITO_IDENTITY_POOL_ID=your-identity-pool-id
+COGNITO_USER_POOL_ID=your-user-pool-id
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/bank-game.git
+   cd bank-game
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+### Running the Application
 
-To learn more about Next.js, take a look at the following resources:
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Open your browser and navigate to:
+   ```
+   http://localhost:3000
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── api/                # API routes for server-side logic
+│   ├── components/         # Reusable React components
+│   ├── dashboard/          # Dashboard-related pages and components
+│   ├── utils/              # Utility functions
+│   ├── middleware.ts       # Middleware for authentication
+│   ├── layout.tsx          # Root layout for the application
+│   └── page.tsx            # Landing page
+├── lib/                    # Shared libraries and actions
+├── services/               # Service functions for external integrations
+├── types/                  # TypeScript type definitions
+└── utils/                  # Additional utility functions
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Key Technologies
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js**: Framework for building the application.
+- **TypeScript**: Strongly typed programming language for safer code.
+- **AWS DynamoDB**: NoSQL database for storing account and transaction data.
+- **AWS Cognito**: Authentication and user management.
+- **Chart.js**: Library for creating interactive charts.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+## Acknowledgments
+
+- Inspired by the book [The First National Bank of Dad](https://www.amazon.com/First-National-Bank-Dad-Foolproof/dp/1416534253).
+- Thanks to the open-source community for tools and libraries used in this project.
+
