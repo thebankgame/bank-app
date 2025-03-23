@@ -8,6 +8,7 @@ What's missing from this app? If I were going to take it to production, I would 
 * Automated testing
 * Localization
 * Accessibility
+* Instrumentation / Analytics
 
 ## Overview
 
