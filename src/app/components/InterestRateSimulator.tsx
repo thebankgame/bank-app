@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,7 +17,7 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
-  Filler
+  Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
@@ -29,7 +29,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler // Ensure Filler plugin is registered
 );
 
 /**
@@ -59,36 +59,9 @@ export default function InterestRateSimulator({
 
   const [balance, setBalance] = useState(initialBalance);
   const [interestRate, setInterestRate] = useState(initialRate);
-  const [chartData, setChartData] = useState<{
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      borderColor: string;
-      backgroundColor: string;
-      tension: number;
-      fill: boolean;
-    }[];
-  }>({
-    labels: [],
-    datasets: [],
-  });
 
-  // TODO: remove useEffect - unnecessary here
-  // Update balance when initialBalance changes
-  useEffect(() => {
-    setBalance(initialBalance || 0);
-  }, [initialBalance]);
-
-  // TODO: remove useEffect - unnecessary here
-  // Update balance when initialBalance changes
-  useEffect(() => {
-    setInterestRate(initialRate || 0);
-  }, [initialRate]);
-
-  // TODO: remove useEffect - unnecessary here
-  useEffect(() => {
-    // Generate data points for 5 years
+  // Ensure deterministic calculations
+  const dataPoints = useMemo(() => {
     const years = 5;
     const dataPoints = Array.from({ length: years * 12 + 1 }, (_, i) => {
       const month = i;
@@ -98,35 +71,34 @@ export default function InterestRateSimulator({
         amount,
       };
     });
-    const months = years * 12;
-    const monthlyRate = interestRate / 100 / 12;
-
-    const data = Array.from({ length: months + 1 }, (_, i) => {
-      const monthlyBalance = balance * Math.pow(1 + monthlyRate, i);
-      return Math.round(monthlyBalance * 100) / 100;
-    });
-
-    setChartData({
-      labels: dataPoints.map((point) => {
-        const date = new Date();
-        date.setMonth(date.getMonth() + point.month);
-        return date.toLocaleDateString("en-US", {
+    return dataPoints.map((point) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() + point.month);
+      return {
+        label: date.toLocaleDateString("en-US", {
           month: "short",
           year: "numeric",
-        });
-      }),
+        }),
+        value: Math.round(point.amount * 100) / 100,
+      };
+    });
+  }, [initialBalance, initialRate]);
+
+  const data = useMemo(
+    () => ({
+      labels: dataPoints.map((point) => point.label),
       datasets: [
         {
-          label: "Projected Balance",
-          data: data,
-          borderColor: "rgb(59, 130, 246)",
-          backgroundColor: "rgba(59, 130, 246, 0.5)",
-          tension: 0.4,
-          fill: false,
+          label: "Interest Simulation",
+          data: dataPoints.map((point) => point.value),
+          borderColor: "#10B981",
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
+          fill: true,
         },
       ],
-    });
-  }, [balance, interestRate]);
+    }),
+    [dataPoints]
+  );
 
   /**
    * Handles changes to the interest rate slider.
@@ -277,10 +249,8 @@ export default function InterestRateSimulator({
           Balance Projection
         </h3>
         <div className="h-[300px]">
-          {/* <div className="w-full h-full"> */}
-          <Line options={options} data={chartData} />
+          <Line options={options} data={data} />
         </div>
-        {/* </div> */}
       </div>
     </div>
   );

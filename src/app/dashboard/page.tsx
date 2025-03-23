@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    console.error("No user email in session");
+    console.error("No user email in session: ", session);
     redirect("/");
   }
 
