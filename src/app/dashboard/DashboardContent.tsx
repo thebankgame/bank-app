@@ -85,7 +85,7 @@ export default function DashboardContent({
   const [transactions, setTransactions] = useState<Transaction[]>(
     selectedAccount?.transactions || []
   );
-  const [showTips, setShowTips] = useState(false);
+  const [showTips, setShowTips] = useState(true);
 
   /**
    * Refreshes the list of accounts by fetching the latest data from the server.
@@ -257,6 +257,8 @@ export default function DashboardContent({
             </button>
             <div className="text-sm text-gray-600">
               {showTips && (
+                <p className="mb-2">
+                  <p className="font-bold">Tips</p>
                 <ul className="list-disc pl-5 mt-2">
                   <li>Your Playground account is pre-populated with $1000</li>
                     <li>Click on &quot;+ New Account&quot; to add as many other accounts as you&apos;d like</li>
@@ -283,6 +285,7 @@ export default function DashboardContent({
                     interest will be recorded on your next transaction
                   </li>
                 </ul>
+                </p>
               )}
             </div>{" "}
           </div>
