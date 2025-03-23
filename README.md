@@ -9,6 +9,7 @@ What's missing from this app? If I were going to take it to production, I would 
 * Localization
 * Accessibility
 * Instrumentation / Analytics
+* Scalability (currently no pagination on transaction history, etc.)
 
 ## Overview
 
