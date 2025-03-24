@@ -34,11 +34,19 @@ export default async function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-100">
       <div className="bg-white p-12 rounded-lg shadow-lg max-w-3xl">
         <h1 className="text-5xl font-bold text-center text-blue-700 mb-8">
-          Get Ready to Run Your Own Bank
+          Run Your Own Bank
         </h1>
+        <p className="text-lg text-gray-700 mb-6 text-center">
+          Teach your kids how compound interest makes money grow!
+        </p>
         <p className="text-lg text-gray-700 mb-6">
-          Teach your kids about compound interest and help them watch their
-          money grow! Inspired by the book{" "}
+Traditional banks offer interest rates on savings accounts, but the balance in children&apos;s accounts are typically so small that interest income doesn&apos;t add up to much. Earning $3 for an entire year after depositing a $100 birthday check from grandma isn&apos;t very motivating or instructive.
+</p>
+        <p className="text-lg text-gray-700 mb-6">
+This app is a virtual bank AND interactive teaching tool designed for families like yours. Use it to create multiple accounts, set your own interest rates, track deposit and withdrawal history and visualize how compound interest increases savings over time. 
+</p>
+        <p className="text-lg text-gray-700 mb-6">
+Inspired by the book{" "}
           <a
             href="https://www.amazon.com/First-National-Bank-Dad-Foolproof/dp/1416534253"
             className="text-blue-500 underline"
@@ -46,23 +54,7 @@ export default async function Home() {
             rel="noopener noreferrer"
           >
             The First National Bank of Dad
-          </a>
-          , this app will let you run your own bank, with you controlling the
-          interest rate and adjusting as they learn.
-        </p>
-        <p className="text-lg text-gray-700 mb-6">
-          Kids aren&apos;t incentivized to save when a bank pays them only $3 to
-          not spend Grandma&apos;s $100 birthday check for an entire year (which
-          feels like an eternity to a child!). Now, you can run your own bank
-          for your kids, showing them the value of compounding interest by
-          paying them $3 each week they save, or each month, or whatever is
-          appropriate for their age and understanding.
-        </p>
-        <p className="text-lg text-gray-700 mb-6">
-          In this interactive application, you&apos;ll get to run your own
-          virtual bank. You&apos;ll manage multiple accounts, track
-          transactions, and work with your kids to model how money would grow
-          with different interest rates.
+          </a>, the best way to teach kids the value of compound interest on small balances is to set a meaningfully high interest rate in the app and watch the interest income grow on a kid-friendly timeline.
         </p>
         <div className="flex justify-center mt-8">
           <div className="flex justify-center mt-8">
