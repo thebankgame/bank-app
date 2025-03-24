@@ -90,7 +90,7 @@ export default function DashboardContent({
   /**
    * Refreshes the list of accounts by fetching the latest data from the server.
    */
-  const refreshAccounts = async () => {
+  const refreshAccounts = async (selectedAccountId?: string) => {
     setError(null);
     try {
       const response = await fetch("/api/accounts", {
@@ -119,6 +119,16 @@ export default function DashboardContent({
           setCurrentRate(data[0].interestRate);
           setCurrentBalance(data[0].balance);
           setTransactions(data[0].transactions);
+        } else {
+          setSelectedAccountId(selectedAccountId);
+          const account = data.find(
+            (acc) => acc.accountId === selectedAccountId
+          );
+
+          setSelectedAccount(account || null);
+          setCurrentRate(account?.interestRate);
+          setCurrentBalance(account?.balance);
+          setTransactions(account?.transactions || []);
         }
       } else {
         // Create a playground account so the user can play around with the app
@@ -152,7 +162,6 @@ export default function DashboardContent({
           return;
         }
 
-        console.log("Playground transaction created:", newTransaction);
 
         data.push(newAccount);
         setAccounts(data);
@@ -198,13 +207,8 @@ export default function DashboardContent({
       if (!response.ok) throw new Error("Failed to create account");
 
       const newAccount: BankAccount = await response.json();
-      console.log("New account created:", newAccount);
-      setAccounts((current) => [...current, newAccount]);
-      setSelectedAccountId(newAccount.accountId);
-      setSelectedAccount(newAccount);
-      setCurrentRate(newAccount.interestRate);
-      setCurrentBalance(newAccount.balance);
-      setTransactions(newAccount.transactions);
+      refreshAccounts(newAccount.accountId);
+
       return newAccount;
     } catch (error) {
       console.error("Error creating account:", error);
@@ -213,15 +217,12 @@ export default function DashboardContent({
   };
 
   async function handleInterestRateChange(newRate: number) {
-    console.log("about to handleInterstRateChange to ", newRate);
     setCurrentRate(newRate);
   }
 
   async function handleNewTransaction(newTransaction: Transaction) {
-    console.log("about to handleTransactionsChange");
 
-    setTransactions((prev) => [...prev, newTransaction]);
-    setCurrentBalance(newTransaction.runningBalance);
+    refreshAccounts(selectedAccountId);
   }
 
   if (error) {

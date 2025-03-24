@@ -36,7 +36,7 @@ export default async function Home() {
         <h1 className="text-5xl font-bold text-center text-blue-700 mb-8">
           Run Your Own Bank
         </h1>
-        <p className="text-lg text-gray-700 mb-6 text-center">
+        <p className="text-xl font-bold text-gray-700 mb-6 text-center">
           Teach your kids how compound interest makes money grow!
         </p>
         <p className="text-lg text-gray-700 mb-6">

@@ -35,8 +35,6 @@ export default function InterestRateSimulator({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [interestRate, setInterestRate] = useState(initialRate);
 
-  console.log("rendering:",initialBalance, initialRate);
-
   //TODO: use alternate solution other than useEffect
   useEffect(() => {
     setInterestRate(initialRate);    

@@ -60,11 +60,6 @@ export default function AccountOverview({
   const [inputRate, setInputRate] = useState(interestRate) || 0;
   const [isLoading, setIsLoading] = useState(false);
 
-  // console.log("rendering account overview for balance: ", balance);
-  // console.log("rendering account overview for interestRate: ", interestRate);
-  // console.log("rendering account overview for inputRate: ", inputRate);
-  // console.log("rendering account overview for account: ", account);
-
   // TODO: remove useEffect - unnecessary here
   // Update input placeholder rate when initialBalance changes
   useEffect(() => {
@@ -114,14 +109,14 @@ export default function AccountOverview({
       console.error("Unable to create new transaction");
       return;
     }
-    _onTransactionsChange(newTransaction);
-
     if (inputRate !== undefined) {
-      handleInterestRateChange(inputRate);
+      await handleInterestRateChange(inputRate);
     }
 
     setIsRateChanging(false);
     setIsLoading(false);
+
+    _onTransactionsChange(newTransaction);
   };
 
   const handleInterestRateChange = async (newRate: number) => {

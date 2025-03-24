@@ -137,7 +137,7 @@ export async function getAccounts(): Promise<BankAccount[]> {
         ":userId": cognitoIdentityId,
       },
     });
-
+    
     const response = await docClient.send(command);
     return response.Items as BankAccount[];
   } catch (error) {
@@ -268,15 +268,14 @@ export async function updateInterestRate(
       },
       ReturnValues: "ALL_NEW",
     });
-
     const response = await docClient.send(command);
     return response.Attributes as BankAccount;
   } catch (error) {
     if (error instanceof TokenExpiredError) {
       throw error;
     }
-    console.error("Error in addTransaction:", error);
-    throw new Error("Failed to add transaction");
+    console.error("Error in updateInterestRate:", error);
+    throw new Error("Failed to update interest rate");
   }
 }
 

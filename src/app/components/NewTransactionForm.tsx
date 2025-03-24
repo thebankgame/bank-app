@@ -75,7 +75,7 @@ export default function NewTransactionForm({
       // Reset form
       setDescription("");
       setAmount("");
-      setType("withdrawal");
+      setType("deposit");
 
       setIsLoading(false);
     }
