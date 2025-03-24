@@ -27,7 +27,7 @@ import router from "next/router";
  * @property {number | undefined} balance - The current balance of the account.
  * @property {number | undefined} interestRate - The current interest rate of the account.
  * @property {Transaction | null} latestTransaction - The latest transaction for the account.
- * @property {(newTransaction: Transaction) => void} onCreateNewTransaction - Callback to handle new transactions.
+ * @property {() => void} onCreateNewTransaction - Callback to handle new transactions.
  */
 interface AccountOverviewProps {
   session: Session;
@@ -36,7 +36,7 @@ interface AccountOverviewProps {
   interestRate: number | undefined;
   latestTransaction: Transaction | null;
   onInterestRateChange: (_newRate: number) => void;
-  onCreateNewTransaction: (_newTransaction: Transaction) => void;
+  onCreateNewTransaction: () => void;
 }
 
 /**
@@ -116,7 +116,7 @@ export default function AccountOverview({
     setIsRateChanging(false);
     setIsLoading(false);
 
-    _onTransactionsChange(newTransaction);
+    _onTransactionsChange();
   };
 
   const handleInterestRateChange = async (newRate: number) => {

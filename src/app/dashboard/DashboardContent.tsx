@@ -171,7 +171,7 @@ export default function DashboardContent({
         setCurrentBalance(data[0].balance);
         setTransactions(data[0].transactions);
 
-        handleNewTransaction(newTransaction);
+        handleNewTransaction();
       }
     } catch (error) {
       console.error("Error creating account: ", error);
@@ -220,7 +220,7 @@ export default function DashboardContent({
     setCurrentRate(newRate);
   }
 
-  async function handleNewTransaction(newTransaction: Transaction) {
+  async function handleNewTransaction() {
 
     refreshAccounts(selectedAccountId);
   }
