@@ -172,7 +172,8 @@ export default function CompoundInterestChart({
 
   return (
     <div className="w-full h-full">
-      <Line options={options} data={data} />
-    </div>
+      {/* <Line options={options} data={data} /> */}
+      <Line data={data} />
+      </div>
   );
 }
