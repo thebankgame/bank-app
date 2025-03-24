@@ -8,29 +8,29 @@
 
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  Filler,
+  // CategoryScale,
+  // LinearScale,
+  // PointElement,
+  // LineElement,
+  // Title,
+  // Tooltip,
+  // Legend,
+  // ChartOptions,
+  // Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { useMemo } from "react";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler // Ensure Filler plugin is registered
-);
+// ChartJS.register(
+//   CategoryScale,
+//   LinearScale,
+//   PointElement,
+//   LineElement,
+//   Title,
+//   Tooltip,
+//   Legend,
+//   Filler // Ensure Filler plugin is registered
+// );
 
 /**
  * Props for the CompoundInterestChart component.
@@ -102,73 +102,73 @@ export default function CompoundInterestChart({
   );
   console.log("3: ", data);
 
-  const options: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top" as const,
-        labels: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12,
-          },
-          color: "#4B5563", // text-gray-600
-        },
-      },
-      tooltip: {
-        backgroundColor: "rgba(255, 255, 255, 0.9)",
-        titleColor: "#1F2937", // text-gray-800
-        bodyColor: "#4B5563", // text-gray-600
-        borderColor: "#E5E7EB", // border-gray-200
-        borderWidth: 1,
-        padding: 12,
-        bodyFont: {
-          family: "'Inter', sans-serif",
-        },
-        titleFont: {
-          family: "'Inter', sans-serif",
-          weight: 600,
-        },
-        callbacks: {
-          label: (context) => {
-            return `Balance: $${context.parsed.y.toFixed(2)}`;
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        grid: {
-          color: "#F3F4F6", // gray-100
-        },
-        ticks: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12,
-          },
-          color: "#6B7280", // text-gray-500
-        },
-      },
-      y: {
-        grid: {
-          color: "#F3F4F6", // gray-100
-        },
-        ticks: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12,
-          },
-          color: "#6B7280", // text-gray-500
-          // callback: (value) => {
-          //   return `$${value.toLocaleString()}`;
-          // },
-        },
-      },
-    },
-  };
+  // const options: ChartOptions<"line"> = {
+  //   responsive: true,
+  //   maintainAspectRatio: false,
+  //   plugins: {
+  //     legend: {
+  //       position: "top" as const,
+  //       labels: {
+  //         font: {
+  //           family: "'Inter', sans-serif",
+  //           size: 12,
+  //         },
+  //         color: "#4B5563", // text-gray-600
+  //       },
+  //     },
+  //     tooltip: {
+  //       backgroundColor: "rgba(255, 255, 255, 0.9)",
+  //       titleColor: "#1F2937", // text-gray-800
+  //       bodyColor: "#4B5563", // text-gray-600
+  //       borderColor: "#E5E7EB", // border-gray-200
+  //       borderWidth: 1,
+  //       padding: 12,
+  //       bodyFont: {
+  //         family: "'Inter', sans-serif",
+  //       },
+  //       titleFont: {
+  //         family: "'Inter', sans-serif",
+  //         weight: 600,
+  //       },
+  //       callbacks: {
+  //         label: (context) => {
+  //           return `Balance: $${context.parsed.y.toFixed(2)}`;
+  //         },
+  //       },
+  //     },
+  //   },
+  //   scales: {
+  //     x: {
+  //       grid: {
+  //         color: "#F3F4F6", // gray-100
+  //       },
+  //       ticks: {
+  //         font: {
+  //           family: "'Inter', sans-serif",
+  //           size: 12,
+  //         },
+  //         color: "#6B7280", // text-gray-500
+  //       },
+  //     },
+  //     y: {
+  //       grid: {
+  //         color: "#F3F4F6", // gray-100
+  //       },
+  //       ticks: {
+  //         font: {
+  //           family: "'Inter', sans-serif",
+  //           size: 12,
+  //         },
+  //         color: "#6B7280", // text-gray-500
+  //         // callback: (value) => {
+  //         //   return `$${value.toLocaleString()}`;
+  //         // },
+  //       },
+  //     },
+  //   },
+  // };
 
-  console.log("options: ", options);
+  // console.log("options: ", options);
 
   return (
     <div className="w-full h-full">
