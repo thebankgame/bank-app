@@ -335,7 +335,7 @@ export default function DashboardContent({
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* <DashboardCard
+          <DashboardCard
             title={
               "Balance Projection for $" +
               currentBalance?.toFixed(2) +
@@ -356,7 +356,7 @@ export default function DashboardContent({
               initialBalance={currentBalance}
               initialRate={currentRate}
             />
-          </DashboardCard> */}
+          </DashboardCard>
         </div>
 
         <div className="mb-8">
