@@ -9,11 +9,25 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
+/**
+ * Props for the InterestRateSimulator component.
+ *
+ * @typedef {Object} InterestRateSimulatorProps
+ * @property {number | undefined} initialBalance - The initial balance to simulate.
+ * @property {number | undefined} initialRate - The initial interest rate to simulate.
+ */
 interface InterestRateSimulatorProps {
   initialBalance: number | undefined;
   initialRate: number | undefined;
 }
 
+/**
+ * A component that simulates and visualizes the growth of a balance over time
+ * based on a user-defined interest rate.
+ *
+ * @param {InterestRateSimulatorProps} props - The props for the component.
+ * @returns {JSX.Element} The JSX structure for the interest rate simulator.
+ */
 export default function InterestRateSimulator({
   initialBalance = 0,
   initialRate = 0,
@@ -21,16 +35,26 @@ export default function InterestRateSimulator({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [interestRate, setInterestRate] = useState(initialRate);
 
+  console.log("rendering:",initialBalance, initialRate);
+
+  //TODO: use alternate solution other than useEffect
+  useEffect(() => {
+    setInterestRate(initialRate);    
+  }, [initialRate]);
+
   useEffect(() => {
     if (!svgRef.current) return;
 
     const years = 5;
-    const dataPoints = Array.from({ length: years * 12 + 1 }, (_, i) => {
-      const month = i;
-      const amount =
-        initialBalance * Math.pow(1 + interestRate / 100 / 12, month);
-      return { month, amount };
-    });
+    const dataPoints = Array.from(
+      { length: years * 12 + 1 },
+      (_, i): { month: number; amount: number } => {
+        const month = i;
+        const amount =
+          initialBalance * Math.pow(1 + interestRate / 100 / 12, month);
+        return { month, amount };
+      }
+    );
 
     const width = 600;
     const height = 300;
@@ -46,14 +70,14 @@ export default function InterestRateSimulator({
 
     const xScale = d3
       .scaleLinear()
-      .domain([0, d3.max(dataPoints, (d) => d.month) || 0])
+      .domain([0, d3.max(dataPoints, (d: { month: number; amount: number }) => d.month) || 0])
       .range([margin.left, width - margin.right]);
 
     const yScale = d3
       .scaleLinear()
       .domain([
-        d3.min(dataPoints, (d) => d.amount) || 0,
-        d3.max(dataPoints, (d) => d.amount) || 0,
+        d3.min(dataPoints, (d: { month: number; amount: number }) => d.amount) || 0,
+        d3.max(dataPoints, (d: { month: number; amount: number }) => d.amount) || 0,
       ])
       .nice()
       .range([height - margin.bottom, margin.top]);
@@ -61,11 +85,11 @@ export default function InterestRateSimulator({
     const xAxis = d3
       .axisBottom(xScale)
       .ticks(10)
-      .tickFormat((d) => `Month ${d}`);
+      .tickFormat((d: number) => `Month ${d}`);
     const yAxis = d3
       .axisLeft(yScale)
       .ticks(6)
-      .tickFormat((d) => `$${d}`);
+      .tickFormat((d: number) => `$${d}`);
 
     svg
       .append("g")
@@ -82,10 +106,9 @@ export default function InterestRateSimulator({
       .call(yAxis)
       .attr("font-size", "12px");
 
-    const line = d3
-      .line<{ month: number; amount: number }>()
-      .x((d) => xScale(d.month))
-      .y((d) => yScale(d.amount))
+    const line = d3.line()
+      .x((d: { month: number; amount: number }) => xScale(d.month))
+      .y((d: { month: number; amount: number }) => yScale(d.amount))
       .curve(d3.curveMonotoneX);
 
     svg
@@ -101,8 +124,8 @@ export default function InterestRateSimulator({
       .data(dataPoints)
       .join("circle")
       .attr("class", "dot")
-      .attr("cx", (d) => xScale(d.month))
-      .attr("cy", (d) => yScale(d.amount))
+      .attr("cx", (d: { month: number; amount: number }) => xScale(d.month))
+      .attr("cy", (d: { month: number; amount: number }) => yScale(d.amount))
       .attr("r", 3)
       .attr("fill", "#10B981")
       .attr("stroke", "#FFFFFF")
