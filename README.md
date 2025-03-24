@@ -115,7 +115,7 @@ src/
 - **TypeScript**: Strongly typed programming language for safer code.
 - **AWS DynamoDB**: NoSQL database for storing account and transaction data.
 - **AWS Cognito**: Authentication and user management.
-- **Chart.js**: Library for creating interactive charts.
+- **d3.js**: Library for creating interactive charts.
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 
 ## Acknowledgments
