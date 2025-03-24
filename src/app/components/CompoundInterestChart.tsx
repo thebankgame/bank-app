@@ -100,7 +100,7 @@ export default function CompoundInterestChart({
     }),
     [labels, dataPoints]
   );
-  console.log("3: ", labels);
+  console.log("3: ", data);
 
   const options: ChartOptions<"line"> = {
     responsive: true,
