@@ -19,6 +19,7 @@
     "@mui/material": "^6.4.8",
     "@types/jsonwebtoken": "^9.0.9",
     "chart.js": "^4.4.8",
+    "d3": "^7.9.0",
     "eslint-define-config": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.2.1",

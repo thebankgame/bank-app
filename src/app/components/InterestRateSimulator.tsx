@@ -1,179 +1,116 @@
 /**
  * @fileoverview This component simulates the growth of a balance over time
  * based on a user-defined interest rate. It displays a chart of the projected
- * balance and allows users to adjust the interest rate dynamically.
+ * balance and allows users to adjust the interest rate dynamically using D3.js.
  */
 
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  Filler,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
+import { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler // Ensure Filler plugin is registered
-);
-
-/**
- * Props for the InterestRateSimulator component.
- *
- * @typedef {Object} InterestRateSimulatorProps
- * @property {number | undefined} initialBalance - The initial balance to simulate.
- * @property {number | undefined} initialRate - The initial interest rate to simulate.
- */
 interface InterestRateSimulatorProps {
   initialBalance: number | undefined;
   initialRate: number | undefined;
 }
 
-/**
- * A component that simulates and visualizes the growth of a balance over time
- * based on a user-defined interest rate.
- *
- * @param {InterestRateSimulatorProps} props - The props for the component.
- * @returns {JSX.Element} The JSX structure for the interest rate simulator.
- */
 export default function InterestRateSimulator({
   initialBalance = 0,
   initialRate = 0,
 }: InterestRateSimulatorProps) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [interestRate, setInterestRate] = useState(initialRate);
 
-  // Precompute data points and avoid using `Date` directly in the render
-  const dataPoints = useMemo(() => {
+  useEffect(() => {
+    if (!svgRef.current) return;
+
     const years = 5;
-    return Array.from({ length: years * 12 + 1 }, (_, i) => {
+    const dataPoints = Array.from({ length: years * 12 + 1 }, (_, i) => {
       const month = i;
       const amount =
         initialBalance * Math.pow(1 + interestRate / 100 / 12, month);
-      return {
-        month,
-        amount,
-      };
+      return { month, amount };
     });
+
+    const width = 600;
+    const height = 300;
+    const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+
+    const svg = d3
+      .select(svgRef.current)
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .style("overflow", "visible");
+
+    // Clear previous content
+    svg.selectAll("*").remove();
+
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(dataPoints, (d) => d.month) || 0])
+      .range([margin.left, width - margin.right]);
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([
+        d3.min(dataPoints, (d) => d.amount) || 0,
+        d3.max(dataPoints, (d) => d.amount) || 0,
+      ])
+      .nice()
+      .range([height - margin.bottom, margin.top]);
+
+    const xAxis = d3
+      .axisBottom(xScale)
+      .ticks(10)
+      .tickFormat((d) => `Month ${d}`);
+    const yAxis = d3
+      .axisLeft(yScale)
+      .ticks(6)
+      .tickFormat((d) => `$${d}`);
+
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(xAxis)
+      .attr("font-size", "12px")
+      .selectAll("text")
+      .attr("transform", "rotate(-45)")
+      .style("text-anchor", "end");
+
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(yAxis)
+      .attr("font-size", "12px");
+
+    const line = d3
+      .line<{ month: number; amount: number }>()
+      .x((d) => xScale(d.month))
+      .y((d) => yScale(d.amount))
+      .curve(d3.curveMonotoneX);
+
+    svg
+      .append("path")
+      .datum(dataPoints)
+      .attr("fill", "none")
+      .attr("stroke", "#10B981")
+      .attr("stroke-width", 2)
+      .attr("d", line);
+
+    svg
+      .selectAll(".dot")
+      .data(dataPoints)
+      .join("circle")
+      .attr("class", "dot")
+      .attr("cx", (d) => xScale(d.month))
+      .attr("cy", (d) => yScale(d.amount))
+      .attr("r", 3)
+      .attr("fill", "#10B981")
+      .attr("stroke", "#FFFFFF")
+      .attr("stroke-width", 1);
   }, [initialBalance, interestRate]);
 
-  const labels = useMemo(() => {
-    return dataPoints.map((point) => `Month ${point.month}`);
-  }, [dataPoints]);
-
-  const data = useMemo(
-    () => ({
-      labels,
-      datasets: [
-        {
-          label: "Interest Simulation",
-          data: dataPoints.map((point) => point.amount),
-          borderColor: "#10B981",
-          backgroundColor: "rgba(16, 185, 129, 0.1)",
-          fill: true,
-        },
-      ],
-    }),
-    [labels, dataPoints]
-  );
-
-  /**
-   * Handles changes to the interest rate slider.
-   *
-   * @param {React.ChangeEvent<HTMLInputElement>} e - The change event from the slider.
-   */
-  const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newRate = parseFloat(e.target.value);
-    setInterestRate(newRate);
-  };
-
   const projectedBalance = initialBalance * Math.pow(1 + interestRate / 100, 5);
-
-  const formattedProjectedBalance: string = projectedBalance.toFixed(2);
-
   const totalInterest = projectedBalance - initialBalance;
-  const formattedTotalInterest: string = totalInterest.toFixed(2);
-  
-
-  const options: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top" as const,
-        labels: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12,
-          },
-          color: "#4B5563", // text-gray-600
-        },
-      },
-      tooltip: {
-        backgroundColor: "rgba(255, 255, 255, 0.9)",
-        titleColor: "#1F2937", // text-gray-800
-        bodyColor: "#4B5563", // text-gray-600
-        borderColor: "#E5E7EB", // border-gray-200
-        borderWidth: 1,
-        padding: 12,
-        bodyFont: {
-          family: "'Inter', sans-serif",
-        },
-        titleFont: {
-          family: "'Inter', sans-serif",
-          weight: 600,
-        },
-        callbacks: {
-          label: (context) => {
-            return `Balance: $${context.parsed.y.toFixed(2)}`;
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        grid: {
-          color: "#F3F4F6", // gray-100
-        },
-        ticks: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12,
-          },
-          color: "#6B7280", // text-gray-500
-        },
-      },
-      y: {
-        grid: {
-          color: "#F3F4F6", // gray-100
-        },
-        ticks: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12,
-          },
-          color: "#6B7280", // text-gray-500
-          // callback: (value) => {
-          //   return `$${value.toLocaleString()}`;
-          // },
-        },
-      },
-    },
-  };
 
   return (
     <div className="space-y-4">
@@ -188,7 +125,7 @@ export default function InterestRateSimulator({
             max="100"
             step="0.1"
             value={interestRate}
-            onChange={handleRateChange}
+            onChange={(e) => setInterestRate(parseFloat(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
         </div>
@@ -207,7 +144,7 @@ export default function InterestRateSimulator({
               Projected Balance (5 years)
             </h3>
             <p className="mt-1 text-xl font-semibold text-gray-900">
-              ${formattedProjectedBalance}
+              ${projectedBalance.toFixed(2)}
             </p>
           </div>
         </div>
@@ -217,7 +154,7 @@ export default function InterestRateSimulator({
             Total Interest Earned
           </h3>
           <p className="mt-1 text-xl font-semibold text-green-600">
-            ${formattedTotalInterest}
+            ${totalInterest.toFixed(2)}
           </p>
         </div>
       </div>
@@ -227,7 +164,7 @@ export default function InterestRateSimulator({
           Balance Projection
         </h3>
         <div className="h-[300px]">
-          <Line options={options} data={data} />
+          <svg ref={svgRef}></svg>
         </div>
       </div>
     </div>
