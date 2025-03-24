@@ -103,21 +103,11 @@ export default function InterestRateSimulator({
 
   const projectedBalance = initialBalance * Math.pow(1 + interestRate / 100, 5);
 
-  const formattedProjectedBalance: string = projectedBalance.toLocaleString(
-    undefined,
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }
-  );
+  const formattedProjectedBalance: string = projectedBalance.toFixed(2);
+
   const totalInterest = projectedBalance - initialBalance;
-  const formattedTotalInterest: string = totalInterest.toLocaleString(
-    undefined,
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }
-  );
+  const formattedTotalInterest: string = totalInterest.toFixed(2);
+  
 
   const options: ChartOptions<"line"> = {
     responsive: true,
@@ -149,10 +139,7 @@ export default function InterestRateSimulator({
         },
         callbacks: {
           label: (context) => {
-            return `Balance: $${context.parsed.y.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`;
+            return `Balance: $${context.parsed.y.toFixed(2)}`;
           },
         },
       },

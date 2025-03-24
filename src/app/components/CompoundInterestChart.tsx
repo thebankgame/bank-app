@@ -16,7 +16,7 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
-    Filler,
+  Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { useMemo } from "react";
@@ -59,7 +59,6 @@ export default function CompoundInterestChart({
   console.log("balance: ", balance);
   console.log("interestRate: ", interestRate);
   console.log("years: ", years);
-  
 
   // Precompute data points
   const dataPoints = useMemo(() => {
@@ -69,9 +68,9 @@ export default function CompoundInterestChart({
       return { month, amount };
     });
   }, [balance, interestRate]);
-  
+
   console.log("dataPoints: ", dataPoints);
-  
+
   // Precompute labels
   const labels = useMemo(() => {
     return dataPoints.map((point) => `Month ${point.month}`);
@@ -133,10 +132,7 @@ export default function CompoundInterestChart({
         },
         callbacks: {
           label: (context) => {
-            return `Balance: $${context.parsed.y.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`;
+            return `Balance: $${context.parsed.y.toFixed(2)}`;
           },
         },
       },
