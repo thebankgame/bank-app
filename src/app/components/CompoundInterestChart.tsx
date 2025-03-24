@@ -19,7 +19,7 @@ import {
   // Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { useMemo } from "react";
+// import { useMemo } from "react";
 
 // ChartJS.register(
 //   CategoryScale,
@@ -61,25 +61,32 @@ export default function CompoundInterestChart({
   console.log("years: ", years);
 
   // Precompute data points
-  const dataPoints = useMemo(() => {
-    return Array.from({ length: years * 12 + 1 }, (_, i) => {
-      const month = i;
-      const amount = balance * Math.pow(1 + interestRate / 100 / 12, month);
-      return { month, amount };
-    });
-  }, [balance, interestRate]);
+  // const dataPoints = useMemo(() => {
+  //   return Array.from({ length: years * 12 + 1 }, (_, i) => {
+  //     const month = i;
+  //     const amount = balance * Math.pow(1 + interestRate / 100 / 12, month);
+  //     return { month, amount };
+  //   });
+  // }, [balance, interestRate]);
 
-  console.log("dataPoints: ", dataPoints);
+  const dataPoints = Array.from({ length: years * 12 + 1 }, (_, i) => {
+    const month = i;
+    const amount = balance * Math.pow(1 + interestRate / 100 / 12, month);
+    return { month, amount };
+  });  console.log("dataPoints: ", dataPoints);
 
   // Precompute labels
-  const labels = useMemo(() => {
-    return dataPoints.map((point) => `Month ${point.month}`);
-  }, [dataPoints]);
+  // const labels = useMemo(() => {
+  //   return dataPoints.map((point) => `Month ${point.month}`);
+  // }, [dataPoints]);
 
-  console.log("labels: ", labels);
+  const labels = dataPoints.map((point) => `Month ${point.month}`);
+    console.log("labels: ", labels);
 
-  const data = useMemo(
-    () => ({
+  const data = 
+  // useMemo(
+  //   () => (
+      {
       labels,
       datasets: [
         {
@@ -97,9 +104,10 @@ export default function CompoundInterestChart({
           fill: true,
         },
       ],
-    }),
-    [labels, dataPoints]
-  );
+    }
+  // ),
+  //   [labels, dataPoints]
+  // );
   console.log("3: ", data);
 
   // const options: ChartOptions<"line"> = {
