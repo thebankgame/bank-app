@@ -10,7 +10,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { redirect } from "next/navigation";
 import SignInButton from "./auth/signin/SignInButton";
-import OpenAI from "openai";
 import AIForm from "./components/AIForm";
 
 /**
@@ -31,10 +30,6 @@ export default async function Home() {
 
   // Fetch the available authentication providers
   const providers = await getProviders();
-
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-100">
