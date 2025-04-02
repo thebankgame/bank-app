@@ -8,7 +8,7 @@ import { authOptions } from "../api/auth/[...nextauth]/authOptions";
 import DashboardContent from "./DashboardContent";
 import { UserBankData } from "@/types/bank";
 import { getAccounts } from "../api/services/dynamoDBService";
-import SignOutButton from "../components/SignOutButton";
+import SignOutButton from "../../components/SignOutButton";
 
 /**
  * The main dashboard page component.

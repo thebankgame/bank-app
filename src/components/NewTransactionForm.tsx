@@ -6,7 +6,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Transaction } from "../../types/bank";
+import type { Transaction } from "../types/bank";
 import { createNewTransaction } from "@/lib/actions";
 import { BankAccount } from "@/types/bank";
 import { Session } from "next-auth";

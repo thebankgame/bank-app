@@ -7,16 +7,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import DashboardCard from "../components/DashboardCard";
-import AccountOverview from "../components/AccountOverview";
-import TransactionHistory from "../components/TransactionHistory";
-import CompoundInterestChart from "../components/CompoundInterestChart";
-import InterestRateSimulator from "../components/InterestRateSimulator";
-import NewTransactionForm from "../components/NewTransactionForm";
+import DashboardCard from "../../components/DashboardCard";
+import AccountOverview from "../../components/AccountOverview";
+import TransactionHistory from "../../components/TransactionHistory";
+import CompoundInterestChart from "../../components/CompoundInterestChart";
+import InterestRateSimulator from "../../components/InterestRateSimulator";
+import NewTransactionForm from "../../components/NewTransactionForm";
 import type { BankAccount, Transaction, UserBankData } from "../../types/bank";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
-import SignOutButton from "../components/SignOutButton";
+import SignOutButton from "../../components/SignOutButton";
 import { createNewTransaction } from "@/lib/actions";
 
 /**
@@ -162,7 +162,6 @@ export default function DashboardContent({
           return;
         }
 
-
         data.push(newAccount);
         setAccounts(data);
         setSelectedAccountId(data[0].accountId);
@@ -221,7 +220,6 @@ export default function DashboardContent({
   }
 
   async function handleNewTransaction() {
-
     refreshAccounts(selectedAccountId);
   }
 

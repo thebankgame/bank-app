@@ -6,8 +6,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Transaction } from "../../types/bank";
-import { calculateInterestSinceLastTransaction } from "../utils/interest";
+import type { Transaction } from "../types/bank";
+import { calculateInterestSinceLastTransaction } from "../app/utils/interest";
 
 /**
  * Props for the TransactionHistory component.
