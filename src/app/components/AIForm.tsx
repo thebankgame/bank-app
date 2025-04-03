@@ -55,7 +55,7 @@ export default function AIForm() {
       >
         Submit
       </button>
-      <p className="text-lg text-gray-700 mt-4">Result: {aiResult}</p>
+      <pre className="text-lg text-gray-700 mt-4 break-words whitespace-pre-wrap">{aiResult}</pre>
     </form>
   );
 }

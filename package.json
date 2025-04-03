@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate": "tsx src/generate.ts"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity": "^3.772.0",
@@ -20,8 +21,14 @@
     "@types/jsonwebtoken": "^9.0.9",
     "chart.js": "^4.4.8",
     "d3": "^7.9.0",
+    "dotenv": "^16.4.7",
     "eslint-define-config": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
+    "llamaindex": "^0.9.15",
+    "@llamaindex/openai": "^0.2.0",
+    "@llamaindex/readers": "^2.0.0",
+    "@llamaindex/server": "0.0.6",
+    "@llamaindex/tools": "0.0.4",
     "next": "15.2.1",
     "next-auth": "^4.24.11",
     "openai": "^4.91.0",
@@ -30,6 +37,7 @@
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
+    "tsx": "^4.19.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -44,6 +52,7 @@
     "eslint-plugin-react": "^7.37.4",
     "globals": "^16.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4.7.2",
     "typescript": "^5",
     "uuid": "^11.1.0"
   }

@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 import SignInButton from "./auth/signin/SignInButton";
 import AIForm from "./components/AIForm";
 
+
 /**
  * The main component for the application's landing page.
  *
@@ -30,6 +31,17 @@ export default async function Home() {
 
   // Fetch the available authentication providers
   const providers = await getProviders();
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-100">
@@ -90,7 +102,7 @@ export default async function Home() {
         <br />
         <br />
         <br />
-        <p className="text-lg text-gray-700 mb-6">PLAYGROUND</p>
+        <p className="text-lg text-gray-700 mb-6">AI PLAYGROUND</p>
         <AIForm />
       </div>
     </main>
