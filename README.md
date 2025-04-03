@@ -66,6 +66,8 @@ COGNITO_ISSUER=https://cognito-idp.<region>.amazonaws.com/<user-pool-id>
 AWS_REGION=your-aws-region
 COGNITO_IDENTITY_POOL_ID=your-identity-pool-id
 COGNITO_USER_POOL_ID=your-user-pool-id
+OPENAI_API_KEY=your-openai-api-key
+SYSTEM_PROMPT=context-prompt-for-llm
 ```
 
 ### Installation
