@@ -8,7 +8,4 @@ export function initSettings() {
   Settings.embedModel = new OpenAIEmbedding({
     model: "text-embedding-3-small",
   });
-  // Settings.prompt = {
-  //   prompt: process.env.SYSTEM_PROMPT,
-  // };
 }
